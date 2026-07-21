@@ -107,6 +107,7 @@
   .stub:focus-within{border-color:var(--gold-soft)}
   .stub-main{flex:1;padding:14px 15px;min-width:0}
   .pname{font-size:16px;font-weight:600;color:var(--ink);padding:2px 0}
+  .pfrom{font-size:11.5px;color:var(--ink-2);margin-top:1px}
   .rate-line{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:13px;color:var(--ink-2)}
   .rate-line .x{color:var(--gold);opacity:.8}
   .rate-fixed{font-family:var(--num);font-size:15px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
@@ -474,11 +475,18 @@
     listEl.innerHTML="";
     activePrograms().forEach(function(pid){
       var prog=PROGRAMS[pid];
+      // Citi ThankYou points don't pool across Citi cards — note which card they belong to.
+      var from="";
+      if(pid==="citiTY"){
+        var src=ownedCards().filter(function(c){ return c.program==="citiTY" && !c.requires; }).map(function(c){ return c.name; });
+        if(src.length) from='<div class="pfrom">from '+src.join(", ")+'</div>';
+      }
       var el=document.createElement("div");
       el.className="stub";
       el.innerHTML=
         '<div class="stub-main">'+
           '<div class="pname">'+prog.name+'</div>'+
+          from+
           '<div class="rate-line">'+
             '<input class="num-in pts" inputmode="numeric" value="" aria-label="'+prog.name+' balance">'+
             '<span class="unit">pts</span>'+
