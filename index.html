@@ -351,7 +351,13 @@
       cap:"S$1,200 / mo", min:"S$1,000", cycle:"Statement (13th–12th)",
       earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; } }
   ];
-  var ISSUERS = ["DBS","Citi","Maybank","UOB"];
+  var ISSUERS = ["Citi","DBS","Maybank","UOB"];   // banks ascending
+  function cardById(id){ for(var i=0;i<CARDS.length;i++){ if(CARDS[i].id===id) return CARDS[i]; } return null; }
+  // Sort key: card name ascending, but a pairing card (Amaze) sorts right under its base card.
+  function cardSortKey(c){
+    if(c.requires){ var r=cardById(c.requires); return (r?r.name:c.name)+"~"; }
+    return c.name;
+  }
 
   /* ------------------------------------------------------------------ *
    * Persistence                                                        *
@@ -693,6 +699,7 @@
     ISSUERS.forEach(function(iss){
       var group=CARDS.filter(function(c){ return c.issuer===iss; });
       if(!group.length) return;
+      group.sort(function(a,bb){ var ka=cardSortKey(a), kb=cardSortKey(bb); return ka<kb?-1:ka>kb?1:0; });
       var g=document.createElement("div"); g.className="set-group";
       var h=document.createElement("div"); h.className="set-head"; h.textContent=iss; g.appendChild(h);
       group.forEach(function(c){
@@ -721,11 +728,11 @@
       'left out of the recommendations:'+
       '<ul>'+
         '<li><b>Citi Rewards</b> — department stores, bags, shoes or clothes</li>'+
+        '<li><b>Maybank World Mastercard</b> — petrol, specialty retail &amp; dining</li>'+
         '<li><b>Maybank XL</b> — SGD spending on shopping and entertainment</li>'+
         '<li><b>UOB Preferred Visa</b> — online transactions for department &amp; retail '+
           'stores, supermarkets, dining &amp; food delivery, entertainment &amp; ticketing</li>'+
         '<li><b>UOB Visa Signature</b> — petrol</li>'+
-        '<li><b>Maybank World Mastercard</b> — petrol, specialty retail &amp; dining</li>'+
       '</ul>';
     setBody.appendChild(disc);
   }
