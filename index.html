@@ -245,6 +245,17 @@
   .set-row.on{border-color:var(--gold-soft)}
   .set-row.on .set-check{background:var(--gold);border-color:var(--gold);color:#fff}
   .set-row.disabled{opacity:.5;cursor:default;box-shadow:none}
+  .set-row.sub{margin-left:24px}
+  .stmt-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:12px 16px;margin-bottom:9px;box-shadow:var(--shadow-sm);
+  }
+  .stmt-name{font-size:15px;font-weight:600;color:var(--ink)}
+  .stmt-sub{font-size:11.5px;color:var(--ink-2);margin-top:2px}
+  .stmt-ctl{display:flex;align-items:center;gap:7px;flex:none}
+  .stmt-in{width:52px;text-align:center}
+  .stmt-unit{font-size:12px;color:var(--ink-2)}
   .disc{
     margin-top:24px;padding:17px 18px;background:#EDF0F5;border-radius:15px;
     font-size:12.5px;line-height:1.55;color:var(--ink-2);
@@ -348,13 +359,13 @@
       cap:"S$1,000 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; } },
     { id:"citi", name:"Citi Rewards", issuer:"Citi", program:"citiTY", advisor:true,
-      cap:"S$1,000 / mo", min:"None", cycle:"Statement (17th–16th)",
+      cap:"S$1,000 / mo", min:"None", cycle:"Statement", stmt:true, stmtDefault:17,
       earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; } },
     { id:"amaze", name:"Amaze + Citi Rewards", issuer:"Citi", program:"citiTY", advisor:true, requires:"citi",
-      cap:"S$1,000 / mo", min:"None", cycle:"Statement (17th–16th)",
+      cap:"S$1,000 / mo", min:"None", cycle:"Statement", stmt:true,
       earns:function(a){ return a.fcy===true && a.category!=="travel" && (a.channel==="online_card" || a.channel==="instore_contactless"); } },
     { id:"premier", name:"Citi PremierMiles", issuer:"Citi", program:"citiMiles", advisor:false,
-      cap:"—", min:"—", cycle:"Statement (17th–16th)" },
+      cap:"—", min:"—", cycle:"Statement", stmt:true, stmtDefault:17 },
     { id:"xl", name:"Maybank XL Rewards", issuer:"Maybank", program:"treats", advisor:true,
       cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.fcy===true || ["dining","travel"].indexOf(a.category)>=0; } },
@@ -367,7 +378,7 @@
       cap:"S$600 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel==="instore_contactless"; } },
     { id:"vs", name:"UOB Visa Signature", issuer:"UOB", program:"unis", advisor:true,
-      cap:"S$1,200 / mo", min:"S$1,000", cycle:"Statement (13th–12th)",
+      cap:"S$1,200 / mo", min:"S$1,000", cycle:"Statement", stmt:true, stmtDefault:13,
       earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; } }
   ];
   var ISSUERS = ["Citi","DBS","Maybank","UOB"];   // banks ascending
@@ -377,11 +388,23 @@
     if(c.requires){ var r=cardById(c.requires); return (r?r.name:c.name)+"~"; }
     return c.name;
   }
+  function ord(n){ var v=n%100; if(v>=11&&v<=13) return n+"th"; var s=["th","st","nd","rd"]; return n+(s[n%10]||"th"); }
+  // A pairing card (Amaze) follows its base card's statement date.
+  function stmtDay(c){
+    var id = c.requires ? c.requires : c.id;
+    if(stmtDays[id]!=null) return stmtDays[id];
+    var base = cardById(id);
+    return base && base.stmtDefault ? base.stmtDefault : 1;
+  }
+  function cycleText(c){
+    if(c.stmt){ var d=stmtDay(c); return "Statement ("+ord(d)+"–"+(d>1?ord(d-1):"month end")+")"; }
+    return c.cycle;
+  }
 
   /* ------------------------------------------------------------------ *
    * Persistence                                                        *
    * ------------------------------------------------------------------ */
-  var OWNED_KEY="miles_owned_v1", BAL_KEY="miles_balances_v1", OLD_KEY="krisflyer_calc_v1";
+  var OWNED_KEY="miles_owned_v1", BAL_KEY="miles_balances_v1", OLD_KEY="krisflyer_calc_v1", STMT_KEY="miles_stmt_v1";
   var memOwned=null, memBal=null;
 
   function loadOwned(){
@@ -416,6 +439,9 @@
   var owned = loadOwned();
   var balances = loadBal() || migrated();
   saveBal();
+
+  var stmtDays = (function(){ try{ var s=localStorage.getItem(STMT_KEY); if(s) return JSON.parse(s); }catch(e){} return {}; })();
+  function saveStmt(){ try{ localStorage.setItem(STMT_KEY, JSON.stringify(stmtDays)); }catch(e){} }
 
   function isOwned(id){ return owned.indexOf(id) >= 0; }
   function ownedCards(){ return CARDS.filter(function(c){ return isOwned(c.id) && (!c.requires || isOwned(c.requires)); }); }
@@ -657,7 +683,7 @@
           '<div class="res-details" hidden>'+
             '<div class="det-row"><span class="det-k">Monthly cap</span><span class="det-v">'+c.cap+'</span></div>'+
             '<div class="det-row"><span class="det-k">Min. spend</span><span class="det-v">'+c.min+'</span></div>'+
-            '<div class="det-row"><span class="det-k">Cycle</span><span class="det-v">'+c.cycle+'</span></div>'+
+            '<div class="det-row"><span class="det-k">Cycle</span><span class="det-v">'+cycleText(c)+'</span></div>'+
           '</div>';
         var head=row.querySelector(".res-card-head"), det=row.querySelector(".res-details");
         head.addEventListener("click", function(){
@@ -792,20 +818,41 @@
       var g=document.createElement("div"); g.className="set-group";
       var h=document.createElement("div"); h.className="set-head"; h.textContent=iss; g.appendChild(h);
       group.forEach(function(c){
-        var disabled = c.requires && !isOwned(c.requires);
-        var on = isOwned(c.id) && !disabled;
-        var sub = "";
-        if(c.id==="lady") sub = "Assumes Travel + Dining selected";
-        else if(disabled) sub = "Needs Citi Rewards";
+        if(c.requires && !isOwned(c.requires)) return;   // pairing (Amaze) hidden unless its base card is owned
+        var on = isOwned(c.id);
+        var isSub = !!c.requires;
+        var sub = (c.id==="lady") ? "Assumes Travel + Dining selected" : "";
         var row=document.createElement("button"); row.type="button";
-        row.className="set-row"+(on?" on":"")+(disabled?" disabled":"");
+        row.className="set-row"+(on?" on":"")+(isSub?" sub":"");
         row.innerHTML='<span><span class="set-name">'+c.name+'</span>'+(sub?'<span class="set-sub">'+sub+'</span>':'')+'</span>'+
           '<span class="set-check">'+CHECK+'</span>';
-        if(!disabled){ row.addEventListener("click", function(){ toggleOwned(c.id); }); }
+        row.addEventListener("click", function(){ toggleOwned(c.id); });
         g.appendChild(row);
       });
       setBody.appendChild(g);
     });
+
+    // Statement dates — for owned cards on a statement cycle (pairings follow their base card)
+    var stmtCards=CARDS.filter(function(c){ return c.stmt && !c.requires && isOwned(c.id); });
+    if(stmtCards.length){
+      var sg=document.createElement("div"); sg.className="set-group";
+      var sh=document.createElement("div"); sh.className="set-head"; sh.textContent="Statement dates"; sg.appendChild(sh);
+      stmtCards.forEach(function(c){
+        var row=document.createElement("div"); row.className="stmt-row";
+        row.innerHTML='<div><div class="stmt-name">'+c.name+'</div><div class="stmt-sub">Statement starts on</div></div>'+
+          '<div class="stmt-ctl"><input class="num-in stmt-in" inputmode="numeric" aria-label="'+c.name+' statement day"><span class="stmt-unit">of mo</span></div>';
+        var input=row.querySelector(".stmt-in");
+        input.value=stmtDay(c);
+        input.addEventListener("input", function(){
+          var v=input.value.replace(/[^0-9]/g,"").slice(0,2); input.value=v;
+          if(!v){ delete stmtDays[c.id]; } else { stmtDays[c.id]=Math.min(31,Math.max(1,parseInt(v,10))); }
+          saveStmt();
+        });
+        input.addEventListener("blur", function(){ input.value=stmtDay(c); });
+        sg.appendChild(row);
+      });
+      setBody.appendChild(sg);
+    }
 
     var disc=document.createElement("div");
     disc.className="disc";
