@@ -330,7 +330,7 @@
       cap:"—", min:"—", cycle:"Statement (17th–16th)" },
     { id:"xl", name:"Maybank XL Rewards", issuer:"Maybank", program:"treats", advisor:true,
       cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
-      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0); } },
+      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","travel"].indexOf(a.category)>=0); } },
     { id:"world", name:"Maybank World Mastercard", issuer:"Maybank", program:"treats", advisor:false,
       cap:"—", min:"—", cycle:"—" },
     { id:"lady", name:"UOB Lady's Solitaire", issuer:"UOB", program:"unis", advisor:true,
@@ -526,11 +526,9 @@
       {val:true,  label:"Foreign currency"}
     ]},
     { key:"category", q:"What are you buying?", options:[
-      {val:"travel",        label:"Travel"},
-      {val:"dining",        label:"Dining"},
-      {val:"shopping",      label:"Shopping"},
-      {val:"entertainment", label:"Entertainment"},
-      {val:"other",         label:"Something else"}
+      {val:"travel", label:"Travel"},
+      {val:"dining", label:"Dining"},
+      {val:"other",  label:"Something else"}
     ]}
   ];
 
