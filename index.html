@@ -41,10 +41,20 @@
   }
   .wrap{max-width:440px;margin:0 auto}
 
+  /* Top chrome: tab switcher + a separate settings button */
+  .chrome{display:flex;align-items:stretch;gap:10px;margin:0 0 22px}
+  .gear{
+    flex:none;width:52px;border-radius:15px;
+    background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:center;color:var(--ink-2);cursor:pointer;
+    transition:background .2s,color .2s;
+  }
+  .gear:active{background:#F0F2F6;color:var(--navy)}
+  .gear svg{width:22px;height:22px}
+
   /* Segmented tab bar — icons only */
   .switch{
-    display:flex;gap:5px;background:#E7EAF1;border-radius:15px;padding:5px;
-    margin:0 0 22px;
+    flex:1;display:flex;gap:5px;background:#E7EAF1;border-radius:15px;padding:5px;margin:0;
   }
   .switch button{
     flex:1;display:flex;align-items:center;justify-content:center;
@@ -207,7 +217,11 @@
   .res-empty-s{font-size:13px;color:var(--ink-2);margin-top:2px}
 
   /* Settings — owned cards */
-  .set-lead{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin:2px 2px 20px}
+  .set-header{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 20px}
+  .set-header h2{font-size:24px;font-weight:700;margin:0;letter-spacing:-.02em;color:var(--ink)}
+  .set-done{background:none;border:none;color:var(--gold);font-size:16px;font-weight:700;cursor:pointer;padding:8px 4px}
+  .set-done:active{opacity:.55}
+  .set-lead{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin:0 2px 20px}
   .set-group{margin-bottom:18px}
   .set-head{
     font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);
@@ -231,7 +245,7 @@
   .set-row.on .set-check{background:var(--gold);border-color:var(--gold);color:#fff}
   .set-row.disabled{opacity:.5;cursor:default;box-shadow:none}
 
-  .opt,.restart,.cta,.switch button,.set-row{
+  .opt,.restart,.cta,.switch button,.set-row,.gear,.set-done{
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   }
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -241,14 +255,16 @@
 <body>
 <div class="wrap">
 
-  <div class="switch" role="tablist" aria-label="View">
-    <button id="tab-adv" role="tab" aria-selected="true" aria-controls="view-advisor" aria-label="Which card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg>
-    </button>
-    <button id="tab-calc" role="tab" aria-selected="false" aria-controls="view-calc" aria-label="Calculator">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="2.5" width="15" height="19" rx="3.2"/><rect x="7.6" y="5.4" width="8.8" height="3.4" rx="1.2"/><circle cx="8.4" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="8.4" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="17.4" r="1.05" fill="currentColor" stroke="none"/></svg>
-    </button>
-    <button id="tab-set" role="tab" aria-selected="false" aria-controls="view-settings" aria-label="Settings">
+  <div class="chrome">
+    <div class="switch" role="tablist" aria-label="View">
+      <button id="tab-adv" role="tab" aria-selected="true" aria-controls="view-advisor" aria-label="Which card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg>
+      </button>
+      <button id="tab-calc" role="tab" aria-selected="false" aria-controls="view-calc" aria-label="Calculator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="2.5" width="15" height="19" rx="3.2"/><rect x="7.6" y="5.4" width="8.8" height="3.4" rx="1.2"/><circle cx="8.4" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="8.4" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="17.4" r="1.05" fill="currentColor" stroke="none"/></svg>
+      </button>
+    </div>
+    <button class="gear" id="open-set" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 13a1.65 1.65 0 0 0 .33 1.82l.02.02a2 2 0 1 1-2.83 2.83l-.02-.02a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.02.02a2 2 0 1 1-2.83-2.83l.02-.02a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.02-.02a2 2 0 1 1 2.83-2.83l.02.02a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.02-.02a2 2 0 1 1 2.83 2.83l-.02.02a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
@@ -271,7 +287,11 @@
     <div id="list"></div>
   </section>
 
-  <section id="view-settings" role="tabpanel" aria-labelledby="tab-set" hidden>
+  <section id="view-settings" role="tabpanel" hidden>
+    <div class="set-header">
+      <h2>Settings</h2>
+      <button class="set-done" id="close-set" type="button">Done</button>
+    </div>
     <div id="settings-body"></div>
   </section>
 
@@ -310,6 +330,8 @@
     { id:"xl", name:"Maybank XL Rewards", issuer:"Maybank", program:"treats", advisor:true,
       cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0); } },
+    { id:"world", name:"Maybank World Mastercard", issuer:"Maybank", program:"treats", advisor:false,
+      cap:"—", min:"—", cycle:"—" },
     { id:"lady", name:"UOB Lady's Solitaire", issuer:"UOB", program:"unis", advisor:true,
       cap:"S$750 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel!=="online_wallet" && (a.category==="travel" || a.category==="dining"); } },
@@ -382,21 +404,37 @@
   /* ------------------------------------------------------------------ *
    * View switch                                                        *
    * ------------------------------------------------------------------ */
-  var tabs = {
+  var mainTabs = {
     adv: {btn:document.getElementById("tab-adv"),  view:document.getElementById("view-advisor")},
-    calc:{btn:document.getElementById("tab-calc"), view:document.getElementById("view-calc")},
-    set: {btn:document.getElementById("tab-set"),  view:document.getElementById("view-settings")}
+    calc:{btn:document.getElementById("tab-calc"), view:document.getElementById("view-calc")}
   };
-  function show(which){
-    Object.keys(tabs).forEach(function(k){
-      var t=tabs[k], on=(k===which);
+  var chromeEl    = document.querySelector(".chrome");
+  var settingsEl  = document.getElementById("view-settings");
+  var activeMain  = "adv";
+
+  function showMain(which){
+    activeMain = which;
+    Object.keys(mainTabs).forEach(function(k){
+      var t=mainTabs[k], on=(k===which);
       t.btn.setAttribute("aria-selected", on ? "true" : "false");
       t.view.hidden = !on;
     });
   }
-  tabs.adv.btn.addEventListener("click",  function(){ show("adv"); });
-  tabs.calc.btn.addEventListener("click", function(){ show("calc"); });
-  tabs.set.btn.addEventListener("click",  function(){ show("set"); });
+  function openSettings(){
+    chromeEl.hidden = true;
+    mainTabs.adv.view.hidden = true;
+    mainTabs.calc.view.hidden = true;
+    settingsEl.hidden = false;
+  }
+  function closeSettings(){
+    settingsEl.hidden = true;
+    chromeEl.hidden = false;
+    showMain(activeMain);
+  }
+  mainTabs.adv.btn.addEventListener("click",  function(){ showMain("adv"); });
+  mainTabs.calc.btn.addEventListener("click", function(){ showMain("calc"); });
+  document.getElementById("open-set").addEventListener("click",  openSettings);
+  document.getElementById("close-set").addEventListener("click", closeSettings);
 
   /* ------------------------------------------------------------------ *
    * Calculator                                                         *
@@ -597,7 +635,7 @@
     e.innerHTML='<span class="ic">'+INFO+'</span><div><div class="res-empty-t">No cards selected</div><div class="res-empty-s">Choose the cards you own to get recommendations.</div></div>';
     frag.appendChild(e);
     var btn=document.createElement("button"); btn.className="cta"; btn.type="button"; btn.textContent="Open Settings";
-    btn.addEventListener("click", function(){ show("set"); });
+    btn.addEventListener("click", openSettings);
     frag.appendChild(btn);
     return frag;
   }
