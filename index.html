@@ -141,6 +141,13 @@
   }
   .add:active{background:var(--gold-tint)}
 
+  /* Advisor — breadcrumb of previous answers (read-only) */
+  .trail{display:flex;flex-wrap:wrap;gap:7px;margin:2px 2px 18px}
+  .crumb{
+    font-size:12.5px;font-weight:600;color:var(--ink-2);
+    background:#E9ECF2;border-radius:999px;padding:6px 13px;
+  }
+
   /* Advisor — questions */
   .adv-q{
     font-size:22px;font-weight:700;color:var(--ink);
@@ -439,19 +446,26 @@
 
   // Each card earns 4 mpd exactly when earns(a) is true, given the answered
   // attributes a = {channel, fcy, category}. Rules derived from the reference.
+  // Only DBS Woman's World earns on Apple Pay (in-app wallet); every other card
+  // is gated out of the online_wallet channel.
   var CARDS = [
     { id:"dbsw", name:"DBS Woman's World",
       earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; } },
     { id:"citi", name:"Citi Rewards",
       earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; } },
+    { id:"amaze", name:"Amaze + Citi Rewards",
+      // Amaze routes spend to Citi as online SGD: it lowers the FX fee on FCY-online
+      // and unlocks FCY-contactless (which Citi can't earn on directly). Pairs only
+      // with Citi, and never applies to SGD spend, travel, or Apple Pay.
+      earns:function(a){ return a.fcy===true && a.category!=="travel" && (a.channel==="online_card" || a.channel==="instore_contactless"); } },
     { id:"xl", name:"Maybank XL Rewards",
-      earns:function(a){ return a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0; } },
+      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0); } },
     { id:"lady", name:"UOB Lady's / Solitaire",
-      earns:function(a){ return a.category==="travel" || a.category==="dining"; } },
+      earns:function(a){ return a.channel!=="online_wallet" && (a.category==="travel" || a.category==="dining"); } },
     { id:"pref", name:"UOB Preferred Visa",
       earns:function(a){ return a.channel==="instore_contactless"; } },
     { id:"vs", name:"UOB Visa Signature",
-      earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; } }
+      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || a.channel==="instore_contactless"); } }
   ];
 
   var ATTRS = [
@@ -525,6 +539,29 @@
 
   var body = document.getElementById("advisor-body");
 
+  function labelFor(key,val){
+    for(var i=0;i<ATTRS.length;i++){
+      if(ATTRS[i].key===key){
+        var o = ATTRS[i].options;
+        for(var j=0;j<o.length;j++){ if(o[j].val===val) return o[j].label; }
+      }
+    }
+    return String(val);
+  }
+
+  function renderTrail(){
+    if(order.length===0) return null;
+    var wrap = document.createElement("div");
+    wrap.className = "trail";
+    order.forEach(function(k){
+      var crumb = document.createElement("div");
+      crumb.className = "crumb";
+      crumb.textContent = labelFor(k, answers[k]);
+      wrap.appendChild(crumb);
+    });
+    return wrap;
+  }
+
   function answer(key,val){
     answers[key]=val;
     if(order.indexOf(key)<0) order.push(key);
@@ -565,6 +602,11 @@
     var frag = document.createDocumentFragment();
     var eligible = CARDS.filter(function(c){ return cardStatus(c,answers)==="yes"; });
 
+    // Amaze replaces a direct Citi Rewards recommendation (same 4 mpd, lower FX fee).
+    if(eligible.map(function(c){ return c.id; }).indexOf("amaze") >= 0){
+      eligible = eligible.filter(function(c){ return c.id!=="citi"; });
+    }
+
     if(eligible.length===0){
       var empty = document.createElement("div");
       empty.className = "res-empty";
@@ -599,6 +641,8 @@
 
   function render(){
     body.innerHTML = "";
+    var trail = renderTrail();
+    if(trail) body.appendChild(trail);
     var next = pickAttr(answers);
     if(next){
       body.appendChild(renderQuestion(next));
