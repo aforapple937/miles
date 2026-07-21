@@ -39,17 +39,6 @@
   }
   .wrap{max-width:460px;margin:0 auto}
 
-  .top{
-    display:flex;align-items:baseline;justify-content:space-between;
-    margin:0 4px 20px;
-  }
-  .brand{
-    font-size:13px;letter-spacing:.28em;text-transform:uppercase;
-    color:var(--gold);font-weight:600;
-  }
-  .brand span{color:var(--muted);font-weight:500}
-  .tail{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
-
   /* Departures-board total */
   .board{
     position:relative;
@@ -184,7 +173,6 @@
   }
   .opt:hover,.opt:focus-visible{border-color:rgba(212,175,98,.45);background:rgba(212,175,98,.05);outline:none}
   .opt-t{font-size:15px;font-weight:600;color:var(--text)}
-  .opt-h{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
 
   .trail{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 18px}
   .chip{
@@ -232,11 +220,6 @@
 <body>
 <div class="wrap">
 
-  <div class="top">
-    <div class="brand">Krisflyer <span>Miles</span></div>
-    <div class="tail">Points → Miles</div>
-  </div>
-
   <div class="switch" role="tablist" aria-label="View">
     <button id="tab-calc" role="tab" aria-selected="true" aria-controls="view-calc">Calculator</button>
     <button id="tab-adv" role="tab" aria-selected="false" aria-controls="view-advisor">Which card?</button>
@@ -261,12 +244,6 @@
   <section id="view-advisor" role="tabpanel" aria-labelledby="tab-adv" hidden>
     <div class="board">
       <div id="advisor-body"></div>
-    </div>
-    <div class="note">
-      Shows cards that earn <b>4 mpd</b> bonus miles for the spend you describe —
-      <b>caps and minimum spends are ignored</b>. Also: <b>Maybank World</b> earns
-      3.2 / 2.8 mpd on any foreign-currency spend (uncapped), a fallback when your
-      4 mpd caps are full.
     </div>
   </section>
 
@@ -450,21 +427,20 @@
 
   var ATTRS = [
     { key:"channel", q:"How are you paying?", options:[
-      {val:"online_card",        label:"Online / in-app",              hint:"Card or PayNow on a site or app"},
-      {val:"online_wallet",      label:"Online / in-app wallet",       hint:"Apple Pay / Google Pay inside an app"},
-      {val:"instore_contactless",label:"In store — tap",               hint:"Contactless card or phone tap"},
-      {val:"instore_chip",       label:"In store — insert / swipe",    hint:"Chip inserted, no tap"}
+      {val:"online_card",        label:"Online"},
+      {val:"online_wallet",      label:"Apple Pay"},
+      {val:"instore_contactless",label:"Contactless"}
     ]},
     { key:"fcy", q:"What currency is it charged in?", options:[
-      {val:false, label:"SGD",              hint:"Singapore dollars"},
-      {val:true,  label:"Foreign currency", hint:"Any non-SGD currency"}
+      {val:false, label:"SGD"},
+      {val:true,  label:"Foreign currency"}
     ]},
     { key:"category", q:"What are you buying?", options:[
-      {val:"travel",        label:"Travel",           hint:"Flights, hotels, agencies"},
-      {val:"dining",        label:"Dining",           hint:"Restaurants, cafes, delivery"},
-      {val:"shopping",      label:"Shopping / retail", hint:"Stores, e-commerce goods"},
-      {val:"entertainment", label:"Entertainment",    hint:"Streaming, events, attractions"},
-      {val:"other",         label:"Something else",   hint:"Groceries, transport, bills…"}
+      {val:"travel",        label:"Travel"},
+      {val:"dining",        label:"Dining"},
+      {val:"shopping",      label:"Shopping"},
+      {val:"entertainment", label:"Entertainment"},
+      {val:"other",         label:"Something else"}
     ]}
   ];
 
@@ -571,7 +547,7 @@
       var b = document.createElement("button");
       b.className = "opt";
       b.type = "button";
-      b.innerHTML = '<span class="opt-t">'+o.label+'</span><span class="opt-h">'+o.hint+'</span>';
+      b.innerHTML = '<span class="opt-t">'+o.label+'</span>';
       b.addEventListener("click", function(){ answer(attr.key, o.val); });
       opts.appendChild(b);
     });
@@ -591,8 +567,7 @@
     if(eligible.length===0){
       var empty = document.createElement("div");
       empty.className = "res-empty";
-      empty.innerHTML = "<b>No card earns 4 mpd bonus miles for this.</b> Use your "+
-        "everyday base-earn card (or Maybank World if it's a large foreign-currency spend).";
+      empty.innerHTML = "<b>No card earns 4 mpd bonus miles for this.</b> Use your everyday base card.";
       frag.appendChild(empty);
     } else {
       eligible.forEach(function(c){
