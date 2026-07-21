@@ -369,7 +369,7 @@
       cap:"S$1,000 / mo", min:"None", cycle:"Statement", stmt:true,
       earns:function(a){ return a.fcy===true && a.category!=="travel" && (a.channel==="online_card" || a.channel==="instore_contactless"); } },
     { id:"premier", name:"Citi PremierMiles", issuer:"Citi", program:"citiMiles", advisor:false,
-      cap:"—", min:"—", cycle:"Statement", stmt:true, stmtDefault:17 },
+      cap:"—", min:"—", cycle:"—" },
     { id:"xl", name:"Maybank XL Rewards", issuer:"Maybank", program:"treats", advisor:true,
       cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.fcy===true || ["dining","travel"].indexOf(a.category)>=0; } },
