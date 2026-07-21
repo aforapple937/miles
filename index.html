@@ -705,11 +705,12 @@
       group.forEach(function(c){
         var disabled = c.requires && !isOwned(c.requires);
         var on = isOwned(c.id) && !disabled;
-        var sub = c.requires ? (disabled ? "Needs Citi Rewards" : "Pairs with Citi Rewards")
-                             : ("Earns "+PROGRAMS[c.program].name);
+        var sub = "";
+        if(c.id==="lady") sub = "Assumes Travel + Dining selected";
+        else if(disabled) sub = "Needs Citi Rewards";
         var row=document.createElement("button"); row.type="button";
         row.className="set-row"+(on?" on":"")+(disabled?" disabled":"");
-        row.innerHTML='<span><span class="set-name">'+c.name+'</span><span class="set-sub">'+sub+'</span></span>'+
+        row.innerHTML='<span><span class="set-name">'+c.name+'</span>'+(sub?'<span class="set-sub">'+sub+'</span>':'')+'</span>'+
           '<span class="set-check">'+CHECK+'</span>';
         if(!disabled){ row.addEventListener("click", function(){ toggleOwned(c.id); }); }
         g.appendChild(row);
