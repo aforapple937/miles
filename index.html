@@ -77,14 +77,27 @@
     color:var(--muted);font-weight:600;margin:0;
   }
 
-  /* Boarding-pass card row */
+  /* Boarding-pass card row — swipe right to reveal Delete */
+  .stub-wrap{
+    position:relative;margin-bottom:10px;border-radius:14px;overflow:hidden;
+  }
+  .stub-delete{
+    position:absolute;left:0;top:0;bottom:0;width:92px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#E0674F,#C8452E);
+    color:#fff;border:none;font-size:14px;font-weight:700;letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .stub-delete:active{filter:brightness(.9)}
   .stub{
     display:flex;align-items:stretch;
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:14px;
-    margin-bottom:10px;
     overflow:hidden;
+    position:relative;z-index:1;
+    transform:translateX(0);
+    touch-action:pan-y;
     transition:border-color .2s;
   }
   .stub:focus-within{border-color:rgba(212,175,98,.45)}
@@ -125,13 +138,6 @@
     word-break:break-all;
   }
   .mi-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-  .del{
-    position:absolute;top:5px;right:6px;
-    width:22px;height:22px;border-radius:50%;
-    background:transparent;border:none;color:var(--muted);
-    font-size:16px;line-height:1;cursor:pointer;opacity:.55;
-  }
-  .del:hover,.del:focus-visible{opacity:1;color:var(--danger);outline:none}
 
   .add{
     width:100%;margin-top:4px;
@@ -172,34 +178,18 @@
     padding:14px 15px;transition:border-color .18s,background .18s;
   }
   .opt:hover,.opt:focus-visible{border-color:rgba(212,175,98,.45);background:rgba(212,175,98,.05);outline:none}
+  .opt:active{background:rgba(212,175,98,.12)}
   .opt-t{font-size:15px;font-weight:600;color:var(--text)}
-
-  .trail{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 18px}
-  .chip{
-    display:inline-flex;align-items:center;gap:6px;cursor:pointer;
-    background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;
-    padding:6px 11px;font-size:12px;color:var(--text);transition:border-color .18s;
-  }
-  .chip:hover,.chip:focus-visible{border-color:var(--perf);outline:none}
-  .chip .k{color:var(--muted)}
-  .chip .e{color:var(--gold);font-size:11px}
 
   .res-head{
     font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
     font-weight:600;margin:2px 2px 12px;
   }
   .res-card{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
     background:var(--panel);border:1px solid var(--line);border-radius:13px;
-    padding:14px 15px;margin-bottom:9px;
+    padding:15px;margin-bottom:9px;
   }
   .res-name{font-size:15.5px;font-weight:600;color:var(--text)}
-  .res-why{font-size:12px;color:var(--muted);margin-top:3px}
-  .res-mpd{
-    flex:none;font-family:var(--num);font-weight:600;color:var(--gold-bright);
-    font-size:15px;text-align:right;line-height:1.1;
-  }
-  .res-mpd small{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:400}
   .res-empty{
     background:var(--panel);border:1px dashed var(--line);border-radius:13px;
     padding:18px 16px;color:var(--muted);font-size:13.5px;line-height:1.5;
@@ -212,6 +202,13 @@
     cursor:pointer;transition:background .18s;
   }
   .restart:hover,.restart:focus-visible{background:rgba(212,175,98,.08);outline:none}
+  .add:active,.restart:active{background:rgba(212,175,98,.16)}
+  .switch button:active{color:var(--text)}
+
+  /* Native-app feel on touch: no text selection / callouts on controls */
+  .opt,.add,.restart,.switch button,.stub-delete{
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  }
 
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -320,29 +317,32 @@
   function render(){
     listEl.innerHTML = "";
     cards.forEach(function(c){
-      var row = document.createElement("div");
-      row.className = "stub";
-      row.innerHTML =
-        '<div class="stub-main">'+
-          '<input class="name" value="" aria-label="Card name">'+
-          '<div class="rate-line">'+
-            '<input class="num-in pts" inputmode="numeric" value="" aria-label="Points balance">'+
-            '<span class="unit">pts</span>'+
-            '<span class="x">×</span>'+
-            '<input class="num-in rate" inputmode="decimal" value="" aria-label="Miles per point">'+
-            '<span class="unit">mi/pt</span>'+
+      var wrap = document.createElement("div");
+      wrap.className = "stub-wrap";
+      wrap.innerHTML =
+        '<button class="stub-delete" type="button" aria-label="Delete card">Delete</button>'+
+        '<div class="stub">'+
+          '<div class="stub-main">'+
+            '<input class="name" value="" aria-label="Card name">'+
+            '<div class="rate-line">'+
+              '<input class="num-in pts" inputmode="numeric" value="" aria-label="Points balance">'+
+              '<span class="unit">pts</span>'+
+              '<span class="x">×</span>'+
+              '<input class="num-in rate" inputmode="decimal" value="" aria-label="Miles per point">'+
+              '<span class="unit">mi/pt</span>'+
+            '</div>'+
           '</div>'+
-        '</div>'+
-        '<div class="stub-mi">'+
-          '<button class="del" aria-label="Remove card">×</button>'+
-          '<div class="mi-num" data-mi>0</div>'+
-          '<div class="mi-lbl">miles</div>'+
+          '<div class="stub-mi">'+
+            '<div class="mi-num" data-mi>0</div>'+
+            '<div class="mi-lbl">miles</div>'+
+          '</div>'+
         '</div>';
 
-      var nameI = row.querySelector(".name");
-      var ptsI  = row.querySelector(".pts");
-      var rateI = row.querySelector(".rate");
-      var miEl  = row.querySelector("[data-mi]");
+      var stub  = wrap.querySelector(".stub");
+      var nameI = wrap.querySelector(".name");
+      var ptsI  = wrap.querySelector(".pts");
+      var rateI = wrap.querySelector(".rate");
+      var miEl  = wrap.querySelector("[data-mi]");
       nameI.value = c.name;
       ptsI.value  = c.points ? c.points : "";
       rateI.value = c.rate;
@@ -357,12 +357,45 @@
         c.rate = rateI.value.replace(/[^0-9.]/g,"");
         save(); refreshTotals();
       });
-      row.querySelector(".del").addEventListener("click", function(){
+      wrap.querySelector(".stub-delete").addEventListener("click", function(){
         cards = cards.filter(function(x){ return x!==c; });
         save(); render(); animateTotal(total());
       });
 
-      listEl.appendChild(row);
+      // Swipe right to reveal Delete, swipe left (or tap the row) to close.
+      var REVEAL = 92, THRESH = 8, startX = null, startY = null, dragging = false, open = false, curX = 0;
+      function setX(x){ curX = x; stub.style.transform = "translateX("+x+"px)"; }
+      stub.addEventListener("pointerdown", function(e){
+        startX = e.clientX; startY = e.clientY; dragging = false;
+        stub.style.transition = "none";
+      });
+      stub.addEventListener("pointermove", function(e){
+        if(startX === null) return;
+        var dx = e.clientX - startX, dy = e.clientY - startY;
+        if(!dragging){
+          if(Math.abs(dx) > THRESH && Math.abs(dx) > Math.abs(dy) + 2){
+            dragging = true;
+            try{ stub.setPointerCapture(e.pointerId); }catch(_){ }
+          } else { return; }
+        }
+        e.preventDefault();
+        var x = (open ? REVEAL : 0) + dx;
+        if(x < 0) x = 0; if(x > REVEAL) x = REVEAL;
+        setX(x);
+      });
+      function endDrag(){
+        if(startX === null) return;
+        var wasDragging = dragging;
+        startX = null; startY = null; dragging = false;
+        stub.style.transition = "transform .22s cubic-bezier(.2,.8,.2,1)";
+        if(!wasDragging) return;          // a tap: leave state, let the input focus
+        open = curX > REVEAL * 0.45;
+        setX(open ? REVEAL : 0);
+      }
+      stub.addEventListener("pointerup", endDrag);
+      stub.addEventListener("pointercancel", endDrag);
+
+      listEl.appendChild(wrap);
     });
     animateTotal(total());
   }
@@ -447,12 +480,6 @@
   var answers = {};   // key -> value
   var order   = [];   // keys in the order they were answered
 
-  function attrByKey(k){ for(var i=0;i<ATTRS.length;i++){ if(ATTRS[i].key===k) return ATTRS[i]; } return null; }
-  function optLabel(attr,val){
-    for(var i=0;i<attr.options.length;i++){ if(attr.options[i].val===val) return attr.options[i].label; }
-    return String(val);
-  }
-
   // All full attribute assignments consistent with the current answers.
   function completions(ans){
     var res = [{}];
@@ -508,31 +535,15 @@
     if(order.indexOf(key)<0) order.push(key);
     render();
   }
-  function editFrom(key){
-    var i = order.indexOf(key);
-    if(i<0) return;
-    var removed = order.splice(i);
-    removed.forEach(function(k){ delete answers[k]; });
-    render(key);
-  }
   function restart(){ answers={}; order=[]; render(); }
 
-  function renderTrail(){
-    if(order.length===0) return null;
-    var wrap = document.createElement("div");
-    wrap.className = "trail";
-    order.forEach(function(k){
-      var attr = attrByKey(k);
-      var chip = document.createElement("button");
-      chip.className = "chip";
-      chip.type = "button";
-      chip.innerHTML = '<span class="k">'+attr.q.replace(/\?.*/,"").split(" ").slice(0,3).join(" ")+
-        ':</span> '+optLabel(attr, answers[k])+' <span class="e">edit</span>';
-      chip.setAttribute("aria-label", "Change: "+optLabel(attr, answers[k]));
-      chip.addEventListener("click", function(){ editFrom(k); });
-      wrap.appendChild(chip);
-    });
-    return wrap;
+  function startOverBtn(){
+    var b = document.createElement("button");
+    b.className = "restart";
+    b.type = "button";
+    b.textContent = "Start over";
+    b.addEventListener("click", restart);
+    return b;
   }
 
   function renderQuestion(attr){
@@ -573,31 +584,24 @@
       eligible.forEach(function(c){
         var row = document.createElement("div");
         row.className = "res-card";
-        row.innerHTML =
-          '<div>'+
-            '<div class="res-name">'+c.name+'</div>'+
-            '<div class="res-why">'+c.why(answers)+'</div>'+
-          '</div>'+
-          '<div class="res-mpd">4.0<small>mpd</small></div>';
+        row.innerHTML = '<div class="res-name">'+c.name+'</div>';
         frag.appendChild(row);
       });
     }
 
-    var again = document.createElement("button");
-    again.className = "restart";
-    again.type = "button";
-    again.textContent = "Start over";
-    again.addEventListener("click", restart);
-    frag.appendChild(again);
+    frag.appendChild(startOverBtn());
     return frag;
   }
 
   function render(){
     body.innerHTML = "";
-    var trail = renderTrail();
-    if(trail) body.appendChild(trail);
     var next = pickAttr(answers);
-    body.appendChild(next ? renderQuestion(next) : renderResult());
+    if(next){
+      body.appendChild(renderQuestion(next));
+      body.appendChild(startOverBtn());
+    } else {
+      body.appendChild(renderResult());
+    }
   }
 
   render();
