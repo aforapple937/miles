@@ -4,212 +4,207 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Miles">
-<meta name="theme-color" content="#0A1A2F">
+<meta name="theme-color" content="#F4F6FA">
 <title>KrisFlyer Miles</title>
 <style>
   :root{
-    --bg:#0A1A2F;
-    --panel:#10233E;
-    --panel-2:#0E2036;
-    --gold:#D4AF62;
+    --bg:#F4F6FA;
+    --surface:#FFFFFF;
+    --ink:#101D2E;
+    --ink-2:#647587;
+    --line:#E6EAF1;
+    --gold:#B0821E;
     --gold-bright:#EAC87C;
-    --text:#EAF0F7;
-    --muted:#89A0BD;
-    --line:rgba(255,255,255,.08);
-    --perf:rgba(212,175,98,.30);
-    --danger:#E58C7C;
+    --gold-tint:#FFF9EE;
+    --gold-soft:#EBD9B0;
+    --navy:#0E1B2C;
+    --danger:#E4573D;
+    --shadow-sm:0 1px 2px rgba(16,29,46,.06),0 2px 6px rgba(16,29,46,.05);
+    --shadow-md:0 6px 18px rgba(16,29,46,.10);
+    --shadow-lg:0 14px 34px rgba(16,29,46,.16);
     --num:"SFMono-Regular",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{
-    background:
-      radial-gradient(120% 80% at 50% -10%, rgba(212,175,98,.10), transparent 60%),
-      var(--bg);
-    color:var(--text);
+    background:var(--bg);
+    color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     min-height:100vh;
     padding:
-      calc(env(safe-area-inset-top) + 22px)
+      calc(env(safe-area-inset-top) + 20px)
       16px
       calc(env(safe-area-inset-bottom) + 40px);
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:460px;margin:0 auto}
+  .wrap{max-width:440px;margin:0 auto}
 
-  /* Departures-board total */
+  /* Segmented tab bar — icons only */
+  .switch{
+    display:flex;gap:5px;background:#E7EAF1;border-radius:15px;padding:5px;
+    margin:0 0 22px;
+  }
+  .switch button{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    border:none;background:transparent;border-radius:11px;padding:11px;
+    color:var(--ink-2);cursor:pointer;
+    transition:background .2s,color .2s,box-shadow .2s;
+  }
+  .switch button svg{width:23px;height:23px;display:block}
+  .switch button[aria-selected="true"]{
+    background:var(--surface);color:var(--navy);box-shadow:var(--shadow-sm);
+  }
+  .switch button:active{color:var(--navy)}
+  [hidden]{display:none!important}
+
+  /* Hero board (calculator) */
   .board{
-    position:relative;
-    background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border:1px solid var(--line);
-    border-radius:20px;
-    padding:26px 24px 24px;
-    overflow:hidden;
+    position:relative;overflow:hidden;
+    background:linear-gradient(140deg,#1A2E48 0%,#0E1B2C 72%);
+    border-radius:22px;padding:24px 24px 22px;color:#fff;
+    box-shadow:var(--shadow-md);
   }
   .board::before{
-    content:"";position:absolute;inset:0;
-    background:radial-gradient(80% 120% at 50% 0%, rgba(212,175,98,.14), transparent 55%);
+    content:"";position:absolute;right:-40px;top:-60px;width:210px;height:210px;
+    background:radial-gradient(circle,rgba(234,200,124,.22),transparent 70%);
     pointer-events:none;
   }
-  .board-label{
-    font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);
-  }
+  .board-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#93A6BE}
   .board-total{
-    font-family:var(--num);
-    font-size:clamp(46px,15vw,66px);
-    font-weight:600;line-height:1.02;letter-spacing:.02em;
-    color:var(--gold-bright);
-    margin:6px 0 2px;
-    font-variant-numeric:tabular-nums;
-    text-shadow:0 0 30px rgba(212,175,98,.25);
+    font-family:var(--num);font-size:clamp(44px,14vw,62px);font-weight:600;
+    line-height:1.04;letter-spacing:.01em;color:var(--gold-bright);
+    margin:8px 0 4px;font-variant-numeric:tabular-nums;
+    text-shadow:0 2px 22px rgba(234,200,124,.28);
   }
-  .board-sub{font-size:12.5px;color:var(--muted)}
-  .board-sub b{color:var(--text);font-weight:600}
+  .board-sub{font-size:12.5px;color:#93A6BE}
+  .board-sub b{color:#fff;font-weight:600}
 
-  .section-head{
-    display:flex;align-items:center;justify-content:space-between;
-    margin:26px 6px 10px;
-  }
+  .section-head{margin:24px 4px 12px}
   .section-head h2{
-    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
-    color:var(--muted);font-weight:600;margin:0;
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);
+    font-weight:700;margin:0;
   }
 
-  /* Boarding-pass card row — swipe right to reveal Delete */
+  /* Card rows — swipe right to reveal Delete */
   .stub-wrap{
-    position:relative;margin-bottom:10px;border-radius:14px;overflow:hidden;
+    position:relative;margin-bottom:11px;border-radius:16px;overflow:hidden;
+    box-shadow:var(--shadow-sm);
   }
   .stub-delete{
-    position:absolute;left:0;top:0;bottom:0;width:92px;
+    position:absolute;left:0;top:0;bottom:0;width:96px;
     display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#E0674F,#C8452E);
-    color:#fff;border:none;font-size:14px;font-weight:700;letter-spacing:.02em;
-    cursor:pointer;
+    background:linear-gradient(180deg,#EA6248,#D6442B);color:#fff;
+    border:none;font-size:14px;font-weight:700;letter-spacing:.02em;cursor:pointer;
   }
-  .stub-delete:active{filter:brightness(.9)}
+  .stub-delete:active{filter:brightness(.94)}
   .stub{
-    display:flex;align-items:stretch;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:14px;
-    overflow:hidden;
-    position:relative;z-index:1;
-    transform:translateX(0);
-    touch-action:pan-y;
+    display:flex;align-items:stretch;position:relative;z-index:1;
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;transform:translateX(0);touch-action:pan-y;
     transition:border-color .2s;
   }
-  .stub:focus-within{border-color:rgba(212,175,98,.45)}
-  .stub-main{flex:1;padding:13px 14px;min-width:0}
+  .stub:focus-within{border-color:var(--gold-soft)}
+  .stub-main{flex:1;padding:14px 15px;min-width:0}
   .name{
-    width:100%;background:transparent;border:none;color:var(--text);
+    width:100%;background:transparent;border:none;color:var(--ink);
     font-size:16px;font-weight:600;padding:2px 0;
     border-bottom:1px solid transparent;outline:none;
   }
-  .name:focus{border-bottom-color:var(--perf)}
-  .rate-line{
-    display:flex;align-items:center;gap:6px;margin-top:8px;
-    font-size:13px;color:var(--muted);
-  }
-  .rate-line .x{color:var(--gold);opacity:.7}
+  .name:focus{border-bottom-color:var(--gold-soft)}
+  .rate-line{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:13px;color:var(--ink-2)}
+  .rate-line .x{color:var(--gold);opacity:.8}
   .num-in{
-    background:rgba(255,255,255,.05);
-    border:1px solid var(--line);border-radius:8px;
-    color:var(--text);font-family:var(--num);font-size:15px;
-    padding:6px 8px;outline:none;min-width:0;
-    font-variant-numeric:tabular-nums;
+    background:#F3F5F9;border:1px solid var(--line);border-radius:9px;
+    color:var(--ink);font-family:var(--num);font-size:15px;padding:7px 9px;outline:none;
+    min-width:0;font-variant-numeric:tabular-nums;
   }
-  .num-in:focus{border-color:var(--perf)}
-  .pts{width:96px}
-  .rate{width:64px}
-  .unit{font-size:11.5px}
-
+  .num-in:focus{border-color:var(--gold-soft);background:#fff}
+  .pts{width:92px}.rate{width:62px}.unit{font-size:11.5px;color:var(--ink-2)}
   .stub-mi{
-    width:104px;flex:none;
-    border-left:1.5px dashed var(--perf);
+    width:100px;flex:none;border-left:1.5px dashed var(--gold-soft);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:8px;gap:2px;
-    position:relative;
+    padding:8px;gap:3px;background:var(--gold-tint);
   }
   .mi-num{
-    font-family:var(--num);font-size:19px;font-weight:600;color:var(--gold-bright);
-    font-variant-numeric:tabular-nums;text-align:center;line-height:1.1;
-    word-break:break-all;
+    font-family:var(--num);font-size:19px;font-weight:700;color:var(--gold);
+    font-variant-numeric:tabular-nums;text-align:center;line-height:1.1;word-break:break-all;
   }
-  .mi-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .mi-lbl{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
 
   .add{
-    width:100%;margin-top:4px;
-    background:transparent;border:1.5px dashed var(--perf);
-    color:var(--gold);border-radius:14px;
-    padding:14px;font-size:14px;font-weight:600;letter-spacing:.03em;
-    cursor:pointer;transition:background .2s;
+    width:100%;margin-top:5px;background:var(--surface);
+    border:1.5px dashed var(--gold-soft);color:var(--gold);border-radius:16px;
+    padding:15px;font-size:14.5px;font-weight:700;letter-spacing:.02em;cursor:pointer;
+    box-shadow:var(--shadow-sm);transition:background .2s;
   }
-  .add:hover,.add:focus-visible{background:rgba(212,175,98,.08);outline:none}
+  .add:active{background:var(--gold-tint)}
 
-  .note{
-    margin:22px 6px 0;font-size:11.5px;line-height:1.6;color:var(--muted);
+  /* Advisor — questions */
+  .adv-q{
+    font-size:22px;font-weight:700;color:var(--ink);
+    margin:6px 2px 18px;line-height:1.25;letter-spacing:-.01em;
   }
-  .note b{color:#B9CADF;font-weight:600}
-
-  /* View switch */
-  .switch{
-    display:flex;gap:4px;margin:0 4px 20px;padding:4px;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
-  }
-  .switch button{
-    flex:1;background:transparent;border:none;border-radius:8px;
-    color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.02em;
-    padding:9px 8px;cursor:pointer;transition:background .18s,color .18s;
-  }
-  .switch button[aria-selected="true"]{
-    background:linear-gradient(180deg,rgba(212,175,98,.20),rgba(212,175,98,.10));
-    color:var(--gold-bright);
-  }
-  [hidden]{display:none!important}
-
-  /* Advisor */
-  .adv-q{font-size:19px;font-weight:600;color:var(--text);margin:2px 2px 16px;line-height:1.3}
-  .adv-opts{display:flex;flex-direction:column;gap:9px}
+  .adv-opts{display:flex;flex-direction:column;gap:10px}
   .opt{
-    display:block;width:100%;text-align:left;cursor:pointer;
-    background:var(--panel);border:1px solid var(--line);border-radius:13px;
-    padding:14px 15px;transition:border-color .18s,background .18s;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;text-align:left;cursor:pointer;
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:17px 18px;box-shadow:var(--shadow-sm);
+    transition:transform .12s,box-shadow .2s,border-color .2s;
   }
-  .opt:hover,.opt:focus-visible{border-color:rgba(212,175,98,.45);background:rgba(212,175,98,.05);outline:none}
-  .opt:active{background:rgba(212,175,98,.12)}
-  .opt-t{font-size:15px;font-weight:600;color:var(--text)}
+  .opt:active{transform:scale(.985);box-shadow:var(--shadow-md)}
+  .opt-t{font-size:16px;font-weight:600;color:var(--ink)}
+  .opt .chev{width:20px;height:20px;color:#B7C1CD;flex:none}
 
-  .res-head{
-    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
-    font-weight:600;margin:2px 2px 12px;
-  }
-  .res-card{
-    background:var(--panel);border:1px solid var(--line);border-radius:13px;
-    padding:15px;margin-bottom:9px;
-  }
-  .res-name{font-size:15.5px;font-weight:600;color:var(--text)}
-  .res-empty{
-    background:var(--panel);border:1px dashed var(--line);border-radius:13px;
-    padding:18px 16px;color:var(--muted);font-size:13.5px;line-height:1.5;
-  }
-  .res-empty b{color:var(--text)}
   .restart{
-    width:100%;margin-top:14px;
-    background:transparent;border:1.5px dashed var(--perf);
-    color:var(--gold);border-radius:13px;padding:13px;font-size:14px;font-weight:600;
-    cursor:pointer;transition:background .18s;
+    width:100%;margin-top:16px;background:transparent;border:none;
+    color:var(--ink-2);border-radius:12px;padding:12px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:background .2s,color .2s;
   }
-  .restart:hover,.restart:focus-visible{background:rgba(212,175,98,.08);outline:none}
-  .add:active,.restart:active{background:rgba(212,175,98,.16)}
-  .switch button:active{color:var(--text)}
+  .restart:active{background:#E9ECF2;color:var(--ink)}
 
-  /* Native-app feel on touch: no text selection / callouts on controls */
+  /* Advisor — result (deliberately distinct from the question cards) */
+  .res-top{display:flex;align-items:center;gap:13px;margin:4px 2px 18px}
+  .res-badge-check{
+    width:46px;height:46px;flex:none;border-radius:50%;
+    background:linear-gradient(140deg,#EAC87C,#C79A3E);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 16px rgba(199,154,62,.42);
+  }
+  .res-badge-check svg{width:25px;height:25px}
+  .res-title{font-size:19px;font-weight:700;color:var(--ink);line-height:1.2;letter-spacing:-.01em}
+  .res-sub{font-size:13px;color:var(--ink-2);margin-top:2px}
+
+  .res-card{
+    display:flex;align-items:center;gap:13px;
+    background:var(--gold-tint);border:1px solid var(--gold-soft);
+    border-radius:15px;padding:16px 17px;margin-bottom:10px;
+  }
+  .res-dot{
+    width:24px;height:24px;flex:none;border-radius:50%;
+    background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;
+  }
+  .res-dot svg{width:15px;height:15px}
+  .res-name{font-size:16px;font-weight:700;color:var(--navy)}
+
+  .res-empty{
+    display:flex;align-items:center;gap:13px;
+    background:var(--surface);border:1px solid var(--line);border-radius:15px;
+    padding:18px;box-shadow:var(--shadow-sm);
+  }
+  .res-empty .ic{
+    width:42px;height:42px;flex:none;border-radius:50%;background:#EEF1F6;color:var(--ink-2);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .res-empty .ic svg{width:22px;height:22px}
+  .res-empty-t{font-size:15.5px;font-weight:700;color:var(--ink)}
+  .res-empty-s{font-size:13px;color:var(--ink-2);margin-top:2px}
+
   .opt,.add,.restart,.switch button,.stub-delete{
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   }
-
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -218,11 +213,19 @@
 <div class="wrap">
 
   <div class="switch" role="tablist" aria-label="View">
-    <button id="tab-calc" role="tab" aria-selected="true" aria-controls="view-calc">Calculator</button>
-    <button id="tab-adv" role="tab" aria-selected="false" aria-controls="view-advisor">Which card?</button>
+    <button id="tab-adv" role="tab" aria-selected="true" aria-controls="view-advisor" aria-label="Which card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19"/><path d="M6 14.5h4"/></svg>
+    </button>
+    <button id="tab-calc" role="tab" aria-selected="false" aria-controls="view-calc" aria-label="Calculator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="2.5" width="15" height="19" rx="3.2"/><rect x="7.6" y="5.4" width="8.8" height="3.4" rx="1.2"/><circle cx="8.4" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="13" r="1.05" fill="currentColor" stroke="none"/><circle cx="8.4" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="12" cy="17.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="15.6" cy="17.4" r="1.05" fill="currentColor" stroke="none"/></svg>
+    </button>
   </div>
 
-  <section id="view-calc" role="tabpanel" aria-labelledby="tab-calc">
+  <section id="view-advisor" role="tabpanel" aria-labelledby="tab-adv">
+    <div id="advisor-body"></div>
+  </section>
+
+  <section id="view-calc" role="tabpanel" aria-labelledby="tab-calc" hidden>
     <div class="board">
       <div class="board-label">Total KrisFlyer miles</div>
       <div class="board-total" id="total">0</div>
@@ -238,15 +241,10 @@
     <button class="add" id="add">+ Add a card</button>
   </section>
 
-  <section id="view-advisor" role="tabpanel" aria-labelledby="tab-adv" hidden>
-    <div class="board">
-      <div id="advisor-body"></div>
-    </div>
-  </section>
-
 </div>
 
 <script>
+/* ---- Calculator ---- */
 (function(){
   "use strict";
   var KEY = "krisflyer_calc_v1";
@@ -327,7 +325,7 @@
             '<div class="rate-line">'+
               '<input class="num-in pts" inputmode="numeric" value="" aria-label="Points balance">'+
               '<span class="unit">pts</span>'+
-              '<span class="x">×</span>'+
+              '<span class="x">&times;</span>'+
               '<input class="num-in rate" inputmode="decimal" value="" aria-label="Miles per point">'+
               '<span class="unit">mi/pt</span>'+
             '</div>'+
@@ -417,8 +415,8 @@
 (function(){
   "use strict";
   var tabs = {
-    calc: {btn:document.getElementById("tab-calc"), view:document.getElementById("view-calc")},
-    adv:  {btn:document.getElementById("tab-adv"),  view:document.getElementById("view-advisor")}
+    adv:  {btn:document.getElementById("tab-adv"),  view:document.getElementById("view-advisor")},
+    calc: {btn:document.getElementById("tab-calc"), view:document.getElementById("view-calc")}
   };
   function show(which){
     Object.keys(tabs).forEach(function(k){
@@ -427,35 +425,33 @@
       t.view.hidden = !on;
     });
   }
-  tabs.calc.btn.addEventListener("click", function(){ show("calc"); });
   tabs.adv.btn.addEventListener("click", function(){ show("adv"); });
+  tabs.calc.btn.addEventListener("click", function(){ show("calc"); });
 })();
 
 /* ---- "Which card?" advisor ---- */
 (function(){
   "use strict";
 
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+  var CHEV  = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  var INFO  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.4"/></svg>';
+
   // Each card earns 4 mpd exactly when earns(a) is true, given the answered
   // attributes a = {channel, fcy, category}. Rules derived from the reference.
   var CARDS = [
     { id:"dbsw", name:"DBS Woman's World",
-      earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; },
-      why:function(){ return "Online spend (incl. in-app Apple Pay)"; } },
+      earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; } },
     { id:"citi", name:"Citi Rewards",
-      earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; },
-      why:function(){ return "Online spend (excludes travel & in-app wallet)"; } },
+      earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; } },
     { id:"xl", name:"Maybank XL Rewards",
-      earns:function(a){ return a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0; },
-      why:function(a){ return a.fcy ? "Foreign-currency spend" : ("SGD "+a.category); } },
+      earns:function(a){ return a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0; } },
     { id:"lady", name:"UOB Lady's / Solitaire",
-      earns:function(a){ return a.category==="travel" || a.category==="dining"; },
-      why:function(a){ return a.category==="travel" ? "Travel" : "Dining"; } },
+      earns:function(a){ return a.category==="travel" || a.category==="dining"; } },
     { id:"pref", name:"UOB Preferred Visa",
-      earns:function(a){ return a.channel==="instore_contactless"; },
-      why:function(){ return "In-store contactless (tap)"; } },
+      earns:function(a){ return a.channel==="instore_contactless"; } },
     { id:"vs", name:"UOB Visa Signature",
-      earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; },
-      why:function(a){ return a.fcy ? "Foreign-currency spend" : "SGD contactless"; } }
+      earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; } }
   ];
 
   var ATTRS = [
@@ -521,7 +517,6 @@
       var score = total/attr.options.length;
       if(score>bestScore){ bestScore=score; best=attr; }
     });
-    // Fallback: nothing scored, but cards remain undetermined — ask the first open attr.
     if(!best || bestScore<=0){
       for(var i=0;i<ATTRS.length;i++){ if(!(ATTRS[i].key in ans)) return ATTRS[i]; }
     }
@@ -558,7 +553,7 @@
       var b = document.createElement("button");
       b.className = "opt";
       b.type = "button";
-      b.innerHTML = '<span class="opt-t">'+o.label+'</span>';
+      b.innerHTML = '<span class="opt-t">'+o.label+'</span>'+CHEV;
       b.addEventListener("click", function(){ answer(attr.key, o.val); });
       opts.appendChild(b);
     });
@@ -570,21 +565,30 @@
     var frag = document.createDocumentFragment();
     var eligible = CARDS.filter(function(c){ return cardStatus(c,answers)==="yes"; });
 
-    var head = document.createElement("div");
-    head.className = "res-head";
-    head.textContent = eligible.length ? "Use any of these — 4 mpd" : "No bonus here";
-    frag.appendChild(head);
-
     if(eligible.length===0){
       var empty = document.createElement("div");
       empty.className = "res-empty";
-      empty.innerHTML = "<b>No card earns 4 mpd bonus miles for this.</b> Use your everyday base card.";
+      empty.innerHTML =
+        '<span class="ic">'+INFO+'</span>'+
+        '<div>'+
+          '<div class="res-empty-t">No bonus card for this</div>'+
+          '<div class="res-empty-s">Use your everyday base card.</div>'+
+        '</div>';
       frag.appendChild(empty);
     } else {
+      var top = document.createElement("div");
+      top.className = "res-top";
+      top.innerHTML =
+        '<span class="res-badge-check">'+CHECK+'</span>'+
+        '<div>'+
+          '<div class="res-title">Use any of these</div>'+
+          '<div class="res-sub">All earn 4 mpd on this spend</div>'+
+        '</div>';
+      frag.appendChild(top);
       eligible.forEach(function(c){
         var row = document.createElement("div");
         row.className = "res-card";
-        row.innerHTML = '<div class="res-name">'+c.name+'</div>';
+        row.innerHTML = '<span class="res-dot">'+CHECK+'</span><span class="res-name">'+c.name+'</span>';
         frag.appendChild(row);
       });
     }
@@ -598,7 +602,7 @@
     var next = pickAttr(answers);
     if(next){
       body.appendChild(renderQuestion(next));
-      body.appendChild(startOverBtn());
+      if(order.length > 0) body.appendChild(startOverBtn());   // nothing to restart on step 1
     } else {
       body.appendChild(renderResult());
     }
