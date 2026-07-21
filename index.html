@@ -254,7 +254,26 @@
   .disc ul{margin:9px 0 0;padding-left:17px}
   .disc li{margin-bottom:6px}
 
-  .opt,.restart,.cta,.switch button,.set-row,.gear,.set-done{
+  /* FCY split optimiser */
+  .sp-back{background:none;border:none;color:var(--gold);font-size:15px;font-weight:700;cursor:pointer;padding:6px 8px 8px 0}
+  .sp-back:active{opacity:.6}
+  .sp-title{font-size:21px;font-weight:700;color:var(--ink);margin:2px 2px 8px;letter-spacing:-.01em}
+  .sp-note{font-size:12.5px;color:var(--ink-2);line-height:1.5;margin:0 2px 16px}
+  .sp-note b{color:var(--ink);font-weight:600}
+  .sp-row{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:var(--shadow-sm)}
+  .sp-main{flex:1;min-width:0}
+  .sp-name{font-size:14.5px;font-weight:600;color:var(--ink)}
+  .sp-meta{font-size:11px;color:var(--ink-2);margin-top:2px}
+  .sp-in{width:82px;flex:none;text-align:right}
+  .sp-miles{width:66px;flex:none;text-align:right;font-family:var(--num);font-weight:700;color:var(--gold);font-size:12.5px}
+  .sp-total{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:15px;padding:15px 17px;margin-top:14px}
+  .sp-total .k{font-size:10.5px;color:#93A6BE;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+  .sp-total .sp-amt{font-size:12.5px;color:#B9CADF;margin-top:3px}
+  .sp-total .v{font-family:var(--num);font-size:26px;font-weight:700;color:var(--gold-bright);line-height:1}
+  .split-btn{width:100%;margin-top:14px;background:var(--gold-tint);border:1px solid var(--gold-soft);color:var(--gold);border-radius:14px;padding:14px;font-size:14.5px;font-weight:700;cursor:pointer;transition:background .2s}
+  .split-btn:active{background:#F6ECD6}
+
+  .opt,.restart,.cta,.switch button,.set-row,.gear,.set-done,.split-btn,.sp-back{
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   }
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -548,6 +567,8 @@
 
   var advBody = document.getElementById("advisor-body");
   var answers = {}, order = [];
+  var advScreen = "flow";   // "flow" | "split"
+  var alloc = {};           // split-tool allocations, keyed by row id
 
   function completions(ans){
     var res=[{}];
@@ -593,7 +614,7 @@
     return wrap;
   }
   function answer(key,val){ answers[key]=val; if(order.indexOf(key)<0) order.push(key); renderAdvisor(); }
-  function resetAdvisor(){ answers={}; order=[]; }
+  function resetAdvisor(){ answers={}; order=[]; advScreen="flow"; alloc={}; }
   function restart(){ resetAdvisor(); renderAdvisor(); }
   function startOverBtn(){
     var b=document.createElement("button"); b.className="restart"; b.type="button"; b.textContent="Start over";
@@ -646,6 +667,12 @@
         frag.appendChild(row);
       });
     }
+    if(answers.fcy===true && eligible.length>0){
+      var sb=document.createElement("button"); sb.className="split-btn"; sb.type="button";
+      sb.textContent="Split a large amount →";
+      sb.addEventListener("click", openSplit);
+      frag.appendChild(sb);
+    }
     frag.appendChild(startOverBtn());
     return frag;
   }
@@ -660,6 +687,7 @@
     return frag;
   }
   function renderAdvisor(){
+    if(advScreen==="split"){ renderSplit(); return; }
     advBody.innerHTML="";
     if(advisorCards().length===0){ advBody.appendChild(setupPrompt()); return; }
     var trail=renderTrail(); if(trail) advBody.appendChild(trail);
@@ -670,6 +698,67 @@
     } else {
       advBody.appendChild(renderResult());
     }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * FCY split optimiser — allocate a chunky foreign-currency spend     *
+   * ------------------------------------------------------------------ */
+  function openSplit(){ advScreen="split"; alloc={}; renderAdvisor(); }
+  function closeSplit(){ advScreen="flow"; renderAdvisor(); }
+  function renderSplit(){
+    advBody.innerHTML="";
+    var back=document.createElement("button"); back.className="sp-back"; back.type="button"; back.innerHTML="&#8249; Back";
+    back.addEventListener("click", closeSplit);
+    advBody.appendChild(back);
+    var title=document.createElement("div"); title.className="sp-title"; title.textContent="Split a large FCY spend";
+    advBody.appendChild(title);
+    var note=document.createElement("div"); note.className="sp-note";
+    note.innerHTML="Charge part of the spend to each card and compare the miles. You know your own remaining caps — the monthly cap is a guide, and anything above it earns the <b>0.4 mpd</b> base. Maybank World is uncapped: it needs ≥ S$800/mo for 2.8 mpd (3.2 mpd at ≥ S$4,000).";
+    advBody.appendChild(note);
+
+    var elig=advisorCards().filter(function(c){ return cardStatus(c,answers)==="yes"; });
+    if(elig.map(function(c){return c.id;}).indexOf("amaze")>=0){ elig=elig.filter(function(c){ return c.id!=="citi"; }); }
+
+    var rows=[];
+    var listWrap=document.createElement("div");
+    function addRow(key,name,meta,rate,isWorld){
+      var row=document.createElement("div"); row.className="sp-row";
+      row.innerHTML='<div class="sp-main"><div class="sp-name">'+name+'</div><div class="sp-meta">'+meta+'</div></div>'+
+        '<input class="num-in sp-in" inputmode="numeric" placeholder="0" aria-label="'+name+' amount">'+
+        '<div class="sp-miles" data-miles>0 mi</div>';
+      var input=row.querySelector(".sp-in"), milesEl=row.querySelector("[data-miles]"), metaEl=row.querySelector(".sp-meta");
+      if(alloc[key]) input.value=alloc[key];
+      input.addEventListener("input", function(){ input.value=input.value.replace(/[^0-9.]/g,""); alloc[key]=input.value; recompute(); });
+      rows.push({key:key,rate:rate,isWorld:!!isWorld,input:input,milesEl:milesEl,metaEl:metaEl});
+      listWrap.appendChild(row);
+    }
+    elig.forEach(function(c){ addRow(c.id, c.name, "4 mpd · cap "+c.cap, 4, false); });
+    if(isOwned("world")){ addRow("world","Maybank World Mastercard","2.8 mpd · uncapped",2.8,true); }
+    addRow("base","Anywhere else","0.4 mpd base",0.4,false);
+    advBody.appendChild(listWrap);
+
+    var tot=document.createElement("div"); tot.className="sp-total";
+    tot.innerHTML='<div><div class="k">Total miles</div><div class="sp-amt" data-amt>S$0 allocated</div></div><div class="v" data-tmiles>0</div>';
+    advBody.appendChild(tot);
+    var amtEl=tot.querySelector("[data-amt]"), tmilesEl=tot.querySelector("[data-tmiles]");
+
+    function recompute(){
+      var total=0;
+      rows.forEach(function(r){ total += parseFloat(r.input.value)||0; });
+      var worldRate = total>=4000?3.2 : (total>=800?2.8:0.4);
+      var tmiles=0;
+      rows.forEach(function(r){
+        var v=parseFloat(r.input.value)||0;
+        var rate=r.isWorld?worldRate:r.rate;
+        var m=Math.floor(v*rate);
+        r.milesEl.textContent=fmt.format(m)+" mi";
+        tmiles+=m;
+        if(r.isWorld) r.metaEl.innerHTML=worldRate+" mpd · uncapped";
+      });
+      amtEl.textContent="S$"+fmt.format(total)+" allocated";
+      tmilesEl.textContent=fmt.format(tmiles);
+    }
+    recompute();
   }
 
   /* ------------------------------------------------------------------ *
