@@ -157,11 +157,6 @@
     margin:22px 6px 0;font-size:11.5px;line-height:1.6;color:var(--muted);
   }
   .note b{color:#B9CADF;font-weight:600}
-  .reset{
-    background:none;border:none;color:var(--muted);
-    font-size:12px;text-decoration:underline;cursor:pointer;padding:0;
-  }
-  .reset:hover{color:var(--text)}
 
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -183,7 +178,6 @@
 
   <div class="section-head">
     <h2>Your cards</h2>
-    <button class="reset" id="reset">Reset</button>
   </div>
 
   <div id="list"></div>
@@ -316,12 +310,6 @@
     var names = listEl.querySelectorAll(".name");
     var last = names[names.length-1];
     if(last){ last.focus(); last.select(); }
-  });
-
-  document.getElementById("reset").addEventListener("click", function(){
-    if(!confirm("Reset to default cards? Your current entries will be cleared.")) return;
-    cards = DEFAULTS.map(function(d){ return {id:uid(), name:d.name, points:d.points, rate:d.rate}; });
-    save(); render(); animateTotal(total());
   });
 
   render();
