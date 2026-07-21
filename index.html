@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Miles">
+<meta name="theme-color" content="#0A1A2F">
+<title>KrisFlyer Miles</title>
+<style>
+  :root{
+    --bg:#0A1A2F;
+    --panel:#10233E;
+    --panel-2:#0E2036;
+    --gold:#D4AF62;
+    --gold-bright:#EAC87C;
+    --text:#EAF0F7;
+    --muted:#89A0BD;
+    --line:rgba(255,255,255,.08);
+    --perf:rgba(212,175,98,.30);
+    --danger:#E58C7C;
+    --num:"SFMono-Regular",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(212,175,98,.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh;
+    padding:
+      calc(env(safe-area-inset-top) + 22px)
+      16px
+      calc(env(safe-area-inset-bottom) + 40px);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:460px;margin:0 auto}
+
+  .top{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:0 4px 20px;
+  }
+  .brand{
+    font-size:13px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;
+  }
+  .brand span{color:var(--muted);font-weight:500}
+  .tail{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+
+  /* Departures-board total */
+  .board{
+    position:relative;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:26px 24px 24px;
+    overflow:hidden;
+  }
+  .board::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(80% 120% at 50% 0%, rgba(212,175,98,.14), transparent 55%);
+    pointer-events:none;
+  }
+  .board-label{
+    font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);
+  }
+  .board-total{
+    font-family:var(--num);
+    font-size:clamp(46px,15vw,66px);
+    font-weight:600;line-height:1.02;letter-spacing:.02em;
+    color:var(--gold-bright);
+    margin:6px 0 2px;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 0 30px rgba(212,175,98,.25);
+  }
+  .board-sub{font-size:12.5px;color:var(--muted)}
+  .board-sub b{color:var(--text);font-weight:600}
+
+  .section-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:26px 6px 10px;
+  }
+  .section-head h2{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;margin:0;
+  }
+
+  /* Boarding-pass card row */
+  .stub{
+    display:flex;align-items:stretch;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:10px;
+    overflow:hidden;
+    transition:border-color .2s;
+  }
+  .stub:focus-within{border-color:rgba(212,175,98,.45)}
+  .stub-main{flex:1;padding:13px 14px;min-width:0}
+  .name{
+    width:100%;background:transparent;border:none;color:var(--text);
+    font-size:16px;font-weight:600;padding:2px 0;
+    border-bottom:1px solid transparent;outline:none;
+  }
+  .name:focus{border-bottom-color:var(--perf)}
+  .rate-line{
+    display:flex;align-items:center;gap:6px;margin-top:8px;
+    font-size:13px;color:var(--muted);
+  }
+  .rate-line .x{color:var(--gold);opacity:.7}
+  .num-in{
+    background:rgba(255,255,255,.05);
+    border:1px solid var(--line);border-radius:8px;
+    color:var(--text);font-family:var(--num);font-size:15px;
+    padding:6px 8px;outline:none;min-width:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .num-in:focus{border-color:var(--perf)}
+  .pts{width:96px}
+  .rate{width:64px}
+  .unit{font-size:11.5px}
+
+  .stub-mi{
+    width:104px;flex:none;
+    border-left:1.5px dashed var(--perf);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:8px;gap:2px;
+    position:relative;
+  }
+  .mi-num{
+    font-family:var(--num);font-size:19px;font-weight:600;color:var(--gold-bright);
+    font-variant-numeric:tabular-nums;text-align:center;line-height:1.1;
+    word-break:break-all;
+  }
+  .mi-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .del{
+    position:absolute;top:5px;right:6px;
+    width:22px;height:22px;border-radius:50%;
+    background:transparent;border:none;color:var(--muted);
+    font-size:16px;line-height:1;cursor:pointer;opacity:.55;
+  }
+  .del:hover,.del:focus-visible{opacity:1;color:var(--danger);outline:none}
+
+  .add{
+    width:100%;margin-top:4px;
+    background:transparent;border:1.5px dashed var(--perf);
+    color:var(--gold);border-radius:14px;
+    padding:14px;font-size:14px;font-weight:600;letter-spacing:.03em;
+    cursor:pointer;transition:background .2s;
+  }
+  .add:hover,.add:focus-visible{background:rgba(212,175,98,.08);outline:none}
+
+  .note{
+    margin:22px 6px 0;font-size:11.5px;line-height:1.6;color:var(--muted);
+  }
+  .note b{color:#B9CADF;font-weight:600}
+  .reset{
+    background:none;border:none;color:var(--muted);
+    font-size:12px;text-decoration:underline;cursor:pointer;padding:0;
+  }
+  .reset:hover{color:var(--text)}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">Krisflyer <span>Miles</span></div>
+    <div class="tail">Points → Miles</div>
+  </div>
+
+  <div class="board">
+    <div class="board-label">Total KrisFlyer miles</div>
+    <div class="board-total" id="total">0</div>
+    <div class="board-sub">across <b id="count">0</b> <span id="cardword">cards</span></div>
+  </div>
+
+  <div class="section-head">
+    <h2>Your cards</h2>
+    <button class="reset" id="reset">Reset</button>
+  </div>
+
+  <div id="list"></div>
+
+  <button class="add" id="add">+ Add a card</button>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "krisflyer_calc_v1";
+  var mem = null; // fallback store when localStorage is blocked (e.g. inside previews)
+
+  var DEFAULTS = [
+    {name:"KrisFlyer (miles held)", points:0, rate:1},
+    {name:"DBS Points",            points:0, rate:2},
+    {name:"Citi Miles",            points:0, rate:1},
+    {name:"Citi ThankYou",         points:0, rate:0.4},
+    {name:"UNI$",                  points:0, rate:2},
+    {name:"Maybank TREATS",        points:0, rate:0.4}
+  ];
+
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+  function load(){
+    try{ var s = localStorage.getItem(KEY); if(s) return JSON.parse(s); }catch(e){}
+    if(mem) return mem;
+    return null;
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(cards)); }catch(e){ mem = cards; }
+  }
+
+  var cards = (load() || DEFAULTS.map(function(d){ return {id:uid(), name:d.name, points:d.points, rate:d.rate}; }));
+
+  var fmt = new Intl.NumberFormat("en-US");
+  function milesFor(c){
+    var p = parseFloat(c.points)||0, r = parseFloat(c.rate)||0;
+    return Math.floor(p*r);
+  }
+  function total(){ return cards.reduce(function(s,c){ return s+milesFor(c); },0); }
+
+  var listEl  = document.getElementById("list");
+  var totalEl = document.getElementById("total");
+  var countEl = document.getElementById("count");
+  var cardWord= document.getElementById("cardword");
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  var shown = 0, raf = null;
+  function animateTotal(to){
+    countEl.textContent = cards.length;
+    cardWord.textContent = cards.length===1 ? "card" : "cards";
+    if(reduce){ shown=to; totalEl.textContent=fmt.format(to); return; }
+    var from = shown, start = null, dur = 480;
+    if(raf) cancelAnimationFrame(raf);
+    function step(t){
+      if(start===null) start=t;
+      var k = Math.min(1,(t-start)/dur);
+      var e = 1-Math.pow(1-k,3);
+      var val = Math.round(from+(to-from)*e);
+      totalEl.textContent = fmt.format(val);
+      if(k<1) raf=requestAnimationFrame(step); else { shown=to; }
+    }
+    raf = requestAnimationFrame(step);
+  }
+
+  function refreshTotals(){
+    // update each visible miles figure without full re-render (keeps input focus)
+    var nodes = listEl.querySelectorAll("[data-mi]");
+    cards.forEach(function(c,i){
+      if(nodes[i]) nodes[i].textContent = fmt.format(milesFor(c));
+    });
+    animateTotal(total());
+  }
+
+  function render(){
+    listEl.innerHTML = "";
+    cards.forEach(function(c){
+      var row = document.createElement("div");
+      row.className = "stub";
+      row.innerHTML =
+        '<div class="stub-main">'+
+          '<input class="name" value="" aria-label="Card name">'+
+          '<div class="rate-line">'+
+            '<input class="num-in pts" inputmode="numeric" value="" aria-label="Points balance">'+
+            '<span class="unit">pts</span>'+
+            '<span class="x">×</span>'+
+            '<input class="num-in rate" inputmode="decimal" value="" aria-label="Miles per point">'+
+            '<span class="unit">mi/pt</span>'+
+          '</div>'+
+        '</div>'+
+        '<div class="stub-mi">'+
+          '<button class="del" aria-label="Remove card">×</button>'+
+          '<div class="mi-num" data-mi>0</div>'+
+          '<div class="mi-lbl">miles</div>'+
+        '</div>';
+
+      var nameI = row.querySelector(".name");
+      var ptsI  = row.querySelector(".pts");
+      var rateI = row.querySelector(".rate");
+      var miEl  = row.querySelector("[data-mi]");
+      nameI.value = c.name;
+      ptsI.value  = c.points ? c.points : "";
+      rateI.value = c.rate;
+      miEl.textContent = fmt.format(milesFor(c));
+
+      nameI.addEventListener("input", function(){ c.name=nameI.value; save(); });
+      ptsI.addEventListener("input", function(){
+        c.points = ptsI.value.replace(/[^0-9.]/g,"");
+        save(); refreshTotals();
+      });
+      rateI.addEventListener("input", function(){
+        c.rate = rateI.value.replace(/[^0-9.]/g,"");
+        save(); refreshTotals();
+      });
+      row.querySelector(".del").addEventListener("click", function(){
+        cards = cards.filter(function(x){ return x!==c; });
+        save(); render(); animateTotal(total());
+      });
+
+      listEl.appendChild(row);
+    });
+    animateTotal(total());
+  }
+
+  document.getElementById("add").addEventListener("click", function(){
+    cards.push({id:uid(), name:"New card", points:0, rate:1});
+    save(); render();
+    var names = listEl.querySelectorAll(".name");
+    var last = names[names.length-1];
+    if(last){ last.focus(); last.select(); }
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    if(!confirm("Reset to default cards? Your current entries will be cleared.")) return;
+    cards = DEFAULTS.map(function(d){ return {id:uid(), name:d.name, points:d.points, rate:d.rate}; });
+    save(); render(); animateTotal(total());
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
