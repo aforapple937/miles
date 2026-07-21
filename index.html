@@ -245,6 +245,14 @@
   .set-row.on{border-color:var(--gold-soft)}
   .set-row.on .set-check{background:var(--gold);border-color:var(--gold);color:#fff}
   .set-row.disabled{opacity:.5;cursor:default;box-shadow:none}
+  .disc{
+    margin-top:24px;padding:17px 18px;background:#EDF0F5;border-radius:15px;
+    font-size:12.5px;line-height:1.55;color:var(--ink-2);
+  }
+  .disc h3{font-size:13px;font-weight:700;color:var(--ink);margin:0 0 8px;letter-spacing:.01em}
+  .disc b{color:var(--ink);font-weight:600}
+  .disc ul{margin:9px 0 0;padding-left:17px}
+  .disc li{margin-bottom:6px}
 
   .opt,.restart,.cta,.switch button,.set-row,.gear,.set-done{
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
@@ -330,18 +338,18 @@
       cap:"—", min:"—", cycle:"Statement (17th–16th)" },
     { id:"xl", name:"Maybank XL Rewards", issuer:"Maybank", program:"treats", advisor:true,
       cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
-      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","travel"].indexOf(a.category)>=0); } },
+      earns:function(a){ return a.fcy===true || ["dining","travel"].indexOf(a.category)>=0; } },
     { id:"world", name:"Maybank World Mastercard", issuer:"Maybank", program:"treats", advisor:false,
       cap:"—", min:"—", cycle:"—" },
     { id:"lady", name:"UOB Lady's Solitaire", issuer:"UOB", program:"unis", advisor:true,
       cap:"S$750 / mo", min:"None", cycle:"Calendar (resets 1st)",
-      earns:function(a){ return a.channel!=="online_wallet" && (a.category==="travel" || a.category==="dining"); } },
+      earns:function(a){ return a.category==="travel" || a.category==="dining"; } },
     { id:"pref", name:"UOB Preferred Visa", issuer:"UOB", program:"unis", advisor:true,
       cap:"S$600 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel==="instore_contactless"; } },
     { id:"vs", name:"UOB Visa Signature", issuer:"UOB", program:"unis", advisor:true,
       cap:"S$1,200 / mo", min:"S$1,000", cycle:"Statement (13th–12th)",
-      earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || a.channel==="instore_contactless"); } }
+      earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; } }
   ];
   var ISSUERS = ["DBS","Citi","Maybank","UOB"];
 
@@ -701,6 +709,25 @@
       });
       setBody.appendChild(g);
     });
+
+    var disc=document.createElement("div");
+    disc.className="disc";
+    disc.innerHTML=
+      '<h3>Why only Travel &amp; Dining?</h3>'+
+      'MCCs (the category codes banks assign to merchants) are confusing, and you often '+
+      'can’t tell which one applies before you pay. To keep this app simple — no '+
+      'checking MCCs before every transaction — only <b>Travel</b> and <b>Dining</b> are '+
+      'treated as bonus categories. The spending below also earns 4 mpd but is deliberately '+
+      'left out of the recommendations:'+
+      '<ul>'+
+        '<li><b>Citi Rewards</b> — department stores, bags, shoes or clothes</li>'+
+        '<li><b>Maybank XL</b> — SGD spending on shopping and entertainment</li>'+
+        '<li><b>UOB Preferred Visa</b> — online transactions for department &amp; retail '+
+          'stores, supermarkets, dining &amp; food delivery, entertainment &amp; ticketing</li>'+
+        '<li><b>UOB Visa Signature</b> — petrol</li>'+
+        '<li><b>Maybank World Mastercard</b> — petrol, specialty retail &amp; dining</li>'+
+      '</ul>';
+    setBody.appendChild(disc);
   }
 
   /* ------------------------------------------------------------------ *
