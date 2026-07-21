@@ -158,6 +158,73 @@
   }
   .note b{color:#B9CADF;font-weight:600}
 
+  /* View switch */
+  .switch{
+    display:flex;gap:4px;margin:0 4px 20px;padding:4px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+  }
+  .switch button{
+    flex:1;background:transparent;border:none;border-radius:8px;
+    color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.02em;
+    padding:9px 8px;cursor:pointer;transition:background .18s,color .18s;
+  }
+  .switch button[aria-selected="true"]{
+    background:linear-gradient(180deg,rgba(212,175,98,.20),rgba(212,175,98,.10));
+    color:var(--gold-bright);
+  }
+  [hidden]{display:none!important}
+
+  /* Advisor */
+  .adv-q{font-size:19px;font-weight:600;color:var(--text);margin:2px 2px 16px;line-height:1.3}
+  .adv-opts{display:flex;flex-direction:column;gap:9px}
+  .opt{
+    display:block;width:100%;text-align:left;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);border-radius:13px;
+    padding:14px 15px;transition:border-color .18s,background .18s;
+  }
+  .opt:hover,.opt:focus-visible{border-color:rgba(212,175,98,.45);background:rgba(212,175,98,.05);outline:none}
+  .opt-t{font-size:15px;font-weight:600;color:var(--text)}
+  .opt-h{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+  .trail{display:flex;flex-wrap:wrap;gap:7px;margin:0 2px 18px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;
+    padding:6px 11px;font-size:12px;color:var(--text);transition:border-color .18s;
+  }
+  .chip:hover,.chip:focus-visible{border-color:var(--perf);outline:none}
+  .chip .k{color:var(--muted)}
+  .chip .e{color:var(--gold);font-size:11px}
+
+  .res-head{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+    font-weight:600;margin:2px 2px 12px;
+  }
+  .res-card{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:13px;
+    padding:14px 15px;margin-bottom:9px;
+  }
+  .res-name{font-size:15.5px;font-weight:600;color:var(--text)}
+  .res-why{font-size:12px;color:var(--muted);margin-top:3px}
+  .res-mpd{
+    flex:none;font-family:var(--num);font-weight:600;color:var(--gold-bright);
+    font-size:15px;text-align:right;line-height:1.1;
+  }
+  .res-mpd small{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  .res-empty{
+    background:var(--panel);border:1px dashed var(--line);border-radius:13px;
+    padding:18px 16px;color:var(--muted);font-size:13.5px;line-height:1.5;
+  }
+  .res-empty b{color:var(--text)}
+  .restart{
+    width:100%;margin-top:14px;
+    background:transparent;border:1.5px dashed var(--perf);
+    color:var(--gold);border-radius:13px;padding:13px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:background .18s;
+  }
+  .restart:hover,.restart:focus-visible{background:rgba(212,175,98,.08);outline:none}
+
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -170,19 +237,38 @@
     <div class="tail">Points → Miles</div>
   </div>
 
-  <div class="board">
-    <div class="board-label">Total KrisFlyer miles</div>
-    <div class="board-total" id="total">0</div>
-    <div class="board-sub">across <b id="count">0</b> <span id="cardword">cards</span></div>
+  <div class="switch" role="tablist" aria-label="View">
+    <button id="tab-calc" role="tab" aria-selected="true" aria-controls="view-calc">Calculator</button>
+    <button id="tab-adv" role="tab" aria-selected="false" aria-controls="view-advisor">Which card?</button>
   </div>
 
-  <div class="section-head">
-    <h2>Your cards</h2>
-  </div>
+  <section id="view-calc" role="tabpanel" aria-labelledby="tab-calc">
+    <div class="board">
+      <div class="board-label">Total KrisFlyer miles</div>
+      <div class="board-total" id="total">0</div>
+      <div class="board-sub">across <b id="count">0</b> <span id="cardword">cards</span></div>
+    </div>
 
-  <div id="list"></div>
+    <div class="section-head">
+      <h2>Your cards</h2>
+    </div>
 
-  <button class="add" id="add">+ Add a card</button>
+    <div id="list"></div>
+
+    <button class="add" id="add">+ Add a card</button>
+  </section>
+
+  <section id="view-advisor" role="tabpanel" aria-labelledby="tab-adv" hidden>
+    <div class="board">
+      <div id="advisor-body"></div>
+    </div>
+    <div class="note">
+      Shows cards that earn <b>4 mpd</b> bonus miles for the spend you describe —
+      <b>caps and minimum spends are ignored</b>. Also: <b>Maybank World</b> earns
+      3.2 / 2.8 mpd on any foreign-currency spend (uncapped), a fallback when your
+      4 mpd caps are full.
+    </div>
+  </section>
 
 </div>
 
@@ -311,6 +397,233 @@
     var last = names[names.length-1];
     if(last){ last.focus(); last.select(); }
   });
+
+  render();
+})();
+</script>
+
+<script>
+/* ---- View switch ---- */
+(function(){
+  "use strict";
+  var tabs = {
+    calc: {btn:document.getElementById("tab-calc"), view:document.getElementById("view-calc")},
+    adv:  {btn:document.getElementById("tab-adv"),  view:document.getElementById("view-advisor")}
+  };
+  function show(which){
+    Object.keys(tabs).forEach(function(k){
+      var t = tabs[k], on = (k===which);
+      t.btn.setAttribute("aria-selected", on ? "true" : "false");
+      t.view.hidden = !on;
+    });
+  }
+  tabs.calc.btn.addEventListener("click", function(){ show("calc"); });
+  tabs.adv.btn.addEventListener("click", function(){ show("adv"); });
+})();
+
+/* ---- "Which card?" advisor ---- */
+(function(){
+  "use strict";
+
+  // Each card earns 4 mpd exactly when earns(a) is true, given the answered
+  // attributes a = {channel, fcy, category}. Rules derived from the reference.
+  var CARDS = [
+    { id:"dbsw", name:"DBS Woman's World",
+      earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; },
+      why:function(){ return "Online spend (incl. in-app Apple Pay)"; } },
+    { id:"citi", name:"Citi Rewards",
+      earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; },
+      why:function(){ return "Online spend (excludes travel & in-app wallet)"; } },
+    { id:"xl", name:"Maybank XL Rewards",
+      earns:function(a){ return a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0; },
+      why:function(a){ return a.fcy ? "Foreign-currency spend" : ("SGD "+a.category); } },
+    { id:"lady", name:"UOB Lady's / Solitaire",
+      earns:function(a){ return a.category==="travel" || a.category==="dining"; },
+      why:function(a){ return a.category==="travel" ? "Travel" : "Dining"; } },
+    { id:"pref", name:"UOB Preferred Visa",
+      earns:function(a){ return a.channel==="instore_contactless"; },
+      why:function(){ return "In-store contactless (tap)"; } },
+    { id:"vs", name:"UOB Visa Signature",
+      earns:function(a){ return a.fcy===true || a.channel==="instore_contactless"; },
+      why:function(a){ return a.fcy ? "Foreign-currency spend" : "SGD contactless"; } }
+  ];
+
+  var ATTRS = [
+    { key:"channel", q:"How are you paying?", options:[
+      {val:"online_card",        label:"Online / in-app",              hint:"Card or PayNow on a site or app"},
+      {val:"online_wallet",      label:"Online / in-app wallet",       hint:"Apple Pay / Google Pay inside an app"},
+      {val:"instore_contactless",label:"In store — tap",               hint:"Contactless card or phone tap"},
+      {val:"instore_chip",       label:"In store — insert / swipe",    hint:"Chip inserted, no tap"}
+    ]},
+    { key:"fcy", q:"What currency is it charged in?", options:[
+      {val:false, label:"SGD",              hint:"Singapore dollars"},
+      {val:true,  label:"Foreign currency", hint:"Any non-SGD currency"}
+    ]},
+    { key:"category", q:"What are you buying?", options:[
+      {val:"travel",        label:"Travel",           hint:"Flights, hotels, agencies"},
+      {val:"dining",        label:"Dining",           hint:"Restaurants, cafes, delivery"},
+      {val:"shopping",      label:"Shopping / retail", hint:"Stores, e-commerce goods"},
+      {val:"entertainment", label:"Entertainment",    hint:"Streaming, events, attractions"},
+      {val:"other",         label:"Something else",   hint:"Groceries, transport, bills…"}
+    ]}
+  ];
+
+  var answers = {};   // key -> value
+  var order   = [];   // keys in the order they were answered
+
+  function attrByKey(k){ for(var i=0;i<ATTRS.length;i++){ if(ATTRS[i].key===k) return ATTRS[i]; } return null; }
+  function optLabel(attr,val){
+    for(var i=0;i<attr.options.length;i++){ if(attr.options[i].val===val) return attr.options[i].label; }
+    return String(val);
+  }
+
+  // All full attribute assignments consistent with the current answers.
+  function completions(ans){
+    var res = [{}];
+    ATTRS.forEach(function(attr){
+      var vals = (attr.key in ans) ? [ans[attr.key]] : attr.options.map(function(o){ return o.val; });
+      var next = [];
+      res.forEach(function(base){
+        vals.forEach(function(v){
+          var c = {}; for(var kk in base) c[kk]=base[kk]; c[attr.key]=v; next.push(c);
+        });
+      });
+      res = next;
+    });
+    return res;
+  }
+
+  // "yes" = earns under every consistent completion, "no" = never, "maybe" = depends.
+  function cardStatus(card, ans){
+    var comps = completions(ans), t=0, f=0;
+    comps.forEach(function(a){ if(card.earns(a)) t++; else f++; });
+    if(t>0 && f===0) return "yes";
+    if(f>0 && t===0) return "no";
+    return "maybe";
+  }
+  function undetermined(ans){ return CARDS.filter(function(c){ return cardStatus(c,ans)==="maybe"; }); }
+
+  // Pick the still-unanswered attribute that resolves the most undetermined cards.
+  function pickAttr(ans){
+    var open = undetermined(ans);
+    if(open.length===0) return null;
+    var best=null, bestScore=-1;
+    ATTRS.forEach(function(attr){
+      if(attr.key in ans) return;
+      var total=0;
+      attr.options.forEach(function(o){
+        var ans2={}; for(var kk in ans) ans2[kk]=ans[kk]; ans2[attr.key]=o.val;
+        total += (open.length - undetermined(ans2).length);
+      });
+      var score = total/attr.options.length;
+      if(score>bestScore){ bestScore=score; best=attr; }
+    });
+    // Fallback: nothing scored, but cards remain undetermined — ask the first open attr.
+    if(!best || bestScore<=0){
+      for(var i=0;i<ATTRS.length;i++){ if(!(ATTRS[i].key in ans)) return ATTRS[i]; }
+    }
+    return best;
+  }
+
+  var body = document.getElementById("advisor-body");
+
+  function answer(key,val){
+    answers[key]=val;
+    if(order.indexOf(key)<0) order.push(key);
+    render();
+  }
+  function editFrom(key){
+    var i = order.indexOf(key);
+    if(i<0) return;
+    var removed = order.splice(i);
+    removed.forEach(function(k){ delete answers[k]; });
+    render(key);
+  }
+  function restart(){ answers={}; order=[]; render(); }
+
+  function renderTrail(){
+    if(order.length===0) return null;
+    var wrap = document.createElement("div");
+    wrap.className = "trail";
+    order.forEach(function(k){
+      var attr = attrByKey(k);
+      var chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.innerHTML = '<span class="k">'+attr.q.replace(/\?.*/,"").split(" ").slice(0,3).join(" ")+
+        ':</span> '+optLabel(attr, answers[k])+' <span class="e">edit</span>';
+      chip.setAttribute("aria-label", "Change: "+optLabel(attr, answers[k]));
+      chip.addEventListener("click", function(){ editFrom(k); });
+      wrap.appendChild(chip);
+    });
+    return wrap;
+  }
+
+  function renderQuestion(attr){
+    var frag = document.createDocumentFragment();
+    var h = document.createElement("div");
+    h.className = "adv-q";
+    h.textContent = attr.q;
+    frag.appendChild(h);
+    var opts = document.createElement("div");
+    opts.className = "adv-opts";
+    attr.options.forEach(function(o){
+      var b = document.createElement("button");
+      b.className = "opt";
+      b.type = "button";
+      b.innerHTML = '<span class="opt-t">'+o.label+'</span><span class="opt-h">'+o.hint+'</span>';
+      b.addEventListener("click", function(){ answer(attr.key, o.val); });
+      opts.appendChild(b);
+    });
+    frag.appendChild(opts);
+    return frag;
+  }
+
+  function renderResult(){
+    var frag = document.createDocumentFragment();
+    var eligible = CARDS.filter(function(c){ return cardStatus(c,answers)==="yes"; });
+
+    var head = document.createElement("div");
+    head.className = "res-head";
+    head.textContent = eligible.length ? "Use any of these — 4 mpd" : "No bonus here";
+    frag.appendChild(head);
+
+    if(eligible.length===0){
+      var empty = document.createElement("div");
+      empty.className = "res-empty";
+      empty.innerHTML = "<b>No card earns 4 mpd bonus miles for this.</b> Use your "+
+        "everyday base-earn card (or Maybank World if it's a large foreign-currency spend).";
+      frag.appendChild(empty);
+    } else {
+      eligible.forEach(function(c){
+        var row = document.createElement("div");
+        row.className = "res-card";
+        row.innerHTML =
+          '<div>'+
+            '<div class="res-name">'+c.name+'</div>'+
+            '<div class="res-why">'+c.why(answers)+'</div>'+
+          '</div>'+
+          '<div class="res-mpd">4.0<small>mpd</small></div>';
+        frag.appendChild(row);
+      });
+    }
+
+    var again = document.createElement("button");
+    again.className = "restart";
+    again.type = "button";
+    again.textContent = "Start over";
+    again.addEventListener("click", restart);
+    frag.appendChild(again);
+    return frag;
+  }
+
+  function render(){
+    body.innerHTML = "";
+    var trail = renderTrail();
+    if(trail) body.appendChild(trail);
+    var next = pickAttr(answers);
+    body.appendChild(next ? renderQuestion(next) : renderResult());
+  }
 
   render();
 })();
