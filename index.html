@@ -271,12 +271,16 @@
   .sp-title{font-size:21px;font-weight:700;color:var(--ink);margin:2px 2px 8px;letter-spacing:-.01em}
   .sp-note{font-size:12.5px;color:var(--ink-2);line-height:1.5;margin:0 2px 16px}
   .sp-note b{color:var(--ink);font-weight:600}
-  .sp-row{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:var(--shadow-sm)}
-  .sp-main{flex:1;min-width:0}
+  .sp-row{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+  .sp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .sp-main{min-width:0}
   .sp-name{font-size:14.5px;font-weight:600;color:var(--ink)}
   .sp-meta{font-size:11px;color:var(--ink-2);margin-top:2px}
-  .sp-in{width:82px;flex:none;text-align:right}
-  .sp-miles{width:66px;flex:none;text-align:right;font-family:var(--num);font-weight:700;color:var(--gold);font-size:12.5px}
+  .sp-miles{flex:none;font-family:var(--num);font-weight:700;color:var(--gold);font-size:13px;white-space:nowrap}
+  .sp-fields{display:flex;gap:9px;margin-top:11px}
+  .sp-field{flex:1;display:flex;flex-direction:column;gap:4px;cursor:text}
+  .sp-flabel{font-size:10px;letter-spacing:.03em;color:var(--ink-2);font-weight:600;text-transform:uppercase}
+  .sp-in{width:100%;text-align:right}
   .sp-total{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:15px;padding:15px 17px;margin-top:14px}
   .sp-total .k{font-size:10.5px;color:#93A6BE;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
   .sp-total .sp-amt{font-size:12.5px;color:#B9CADF;margin-top:3px}
@@ -739,7 +743,7 @@
     var title=document.createElement("div"); title.className="sp-title"; title.textContent="Split a large FCY spend";
     advBody.appendChild(title);
     var note=document.createElement("div"); note.className="sp-note";
-    note.innerHTML="Charge part of the spend to each card and compare the miles. You know your own remaining caps — the monthly cap is a guide, and anything above it earns the <b>0.4 mpd</b> base. Maybank World is uncapped: it needs ≥ S$800/mo for 2.8 mpd (3.2 mpd at ≥ S$4,000).";
+    note.innerHTML="For each card, split what you'll charge into <b>Bonus</b> (the amount still within your cap this month — you know how much you've already used) and <b>Base</b> (anything over the cap, at 0.4 mpd). The monthly cap is shown as a guide. Maybank World is uncapped: its bonus rate is 2.8 mpd (3.2 mpd once the total ≥ S$4,000).";
     advBody.appendChild(note);
 
     var elig=advisorCards().filter(function(c){ return cardStatus(c,answers)==="yes"; });
@@ -749,18 +753,26 @@
     var listWrap=document.createElement("div");
     function addRow(key,name,meta,rate,isWorld){
       var row=document.createElement("div"); row.className="sp-row";
-      row.innerHTML='<div class="sp-main"><div class="sp-name">'+name+'</div><div class="sp-meta">'+meta+'</div></div>'+
-        '<input class="num-in sp-in" inputmode="numeric" placeholder="0" aria-label="'+name+' amount">'+
-        '<div class="sp-miles" data-miles>0 mi</div>';
-      var input=row.querySelector(".sp-in"), milesEl=row.querySelector("[data-miles]"), metaEl=row.querySelector(".sp-meta");
-      if(alloc[key]) input.value=alloc[key];
-      input.addEventListener("input", function(){ input.value=input.value.replace(/[^0-9.]/g,""); alloc[key]=input.value; recompute(); });
-      rows.push({key:key,rate:rate,isWorld:!!isWorld,input:input,milesEl:milesEl,metaEl:metaEl});
+      row.innerHTML=
+        '<div class="sp-top">'+
+          '<div class="sp-main"><div class="sp-name">'+name+'</div><div class="sp-meta">'+meta+'</div></div>'+
+          '<div class="sp-miles" data-miles>0 mi</div>'+
+        '</div>'+
+        '<div class="sp-fields">'+
+          '<label class="sp-field"><span class="sp-flabel">Bonus</span><input class="num-in sp-in" data-k="b" inputmode="numeric" placeholder="0" aria-label="'+name+' bonus amount"></label>'+
+          '<label class="sp-field"><span class="sp-flabel">Base · 0.4</span><input class="num-in sp-in" data-k="x" inputmode="numeric" placeholder="0" aria-label="'+name+' base amount"></label>'+
+        '</div>';
+      var bIn=row.querySelector('[data-k="b"]'), xIn=row.querySelector('[data-k="x"]');
+      var milesEl=row.querySelector("[data-miles]"), metaEl=row.querySelector(".sp-meta");
+      var a=alloc[key]||{}; if(a.b) bIn.value=a.b; if(a.x) xIn.value=a.x;
+      function onIn(inp){ inp.value=inp.value.replace(/[^0-9.]/g,""); alloc[key]={b:bIn.value,x:xIn.value}; recompute(); }
+      bIn.addEventListener("input", function(){ onIn(bIn); });
+      xIn.addEventListener("input", function(){ onIn(xIn); });
+      rows.push({key:key,rate:rate,isWorld:!!isWorld,bIn:bIn,xIn:xIn,milesEl:milesEl,metaEl:metaEl});
       listWrap.appendChild(row);
     }
     elig.forEach(function(c){ addRow(c.id, c.name, "4 mpd · cap "+c.cap, 4, false); });
     if(isOwned("world")){ addRow("world","Maybank World Mastercard","2.8 mpd · uncapped",2.8,true); }
-    addRow("base","Anywhere else","0.4 mpd base",0.4,false);
     advBody.appendChild(listWrap);
 
     var tot=document.createElement("div"); tot.className="sp-total";
@@ -770,13 +782,13 @@
 
     function recompute(){
       var total=0;
-      rows.forEach(function(r){ total += parseFloat(r.input.value)||0; });
+      rows.forEach(function(r){ total += (parseFloat(r.bIn.value)||0)+(parseFloat(r.xIn.value)||0); });
       var worldRate = total>=4000?3.2 : (total>=800?2.8:0.4);
       var tmiles=0;
       rows.forEach(function(r){
-        var v=parseFloat(r.input.value)||0;
+        var bv=parseFloat(r.bIn.value)||0, xv=parseFloat(r.xIn.value)||0;
         var rate=r.isWorld?worldRate:r.rate;
-        var m=Math.floor(v*rate);
+        var m=Math.floor(bv*rate + xv*0.4);
         r.milesEl.textContent=fmt.format(m)+" mi";
         tmiles+=m;
         if(r.isWorld) r.metaEl.innerHTML=worldRate+" mpd · uncapped";
