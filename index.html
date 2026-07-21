@@ -185,16 +185,29 @@
   .res-sub{font-size:13px;color:var(--ink-2);margin-top:2px}
 
   .res-card{
-    display:flex;align-items:center;gap:13px;
     background:var(--gold-tint);border:1px solid var(--gold-soft);
-    border-radius:15px;padding:16px 17px;margin-bottom:10px;
+    border-radius:15px;margin-bottom:10px;overflow:hidden;
   }
+  .res-card-head{
+    display:flex;align-items:center;gap:13px;padding:16px 17px;cursor:pointer;
+    -webkit-user-select:none;user-select:none;
+  }
+  .res-card-head:active{background:rgba(199,154,62,.09)}
   .res-dot{
     width:24px;height:24px;flex:none;border-radius:50%;
     background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;
   }
   .res-dot svg{width:15px;height:15px}
   .res-name{font-size:16px;font-weight:700;color:var(--navy)}
+  .res-chev{margin-left:auto;width:18px;height:18px;color:var(--gold);flex:none;transition:transform .22s}
+  .res-card.open .res-chev{transform:rotate(180deg)}
+  .res-details{padding:0 17px 6px}
+  .det-row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    padding:11px 0;border-top:1px solid var(--gold-soft);
+  }
+  .det-k{font-size:13px;color:var(--ink-2)}
+  .det-v{font-size:13px;font-weight:700;color:var(--navy);text-align:right}
 
   .res-empty{
     display:flex;align-items:center;gap:13px;
@@ -442,6 +455,7 @@
 
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
   var CHEV  = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  var DOWN  = '<svg class="res-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   var INFO  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.4"/></svg>';
 
   // Each card earns 4 mpd exactly when earns(a) is true, given the answered
@@ -450,29 +464,36 @@
   // is gated out of the online_wallet channel.
   var CARDS = [
     { id:"dbsw", name:"DBS Woman's World",
+      cap:"S$1,000 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel==="online_card" || a.channel==="online_wallet"; } },
     { id:"citi", name:"Citi Rewards",
+      cap:"S$1,000 / mo", min:"None", cycle:"Statement (17th–16th)",
       earns:function(a){ return a.channel==="online_card" && a.category!=="travel"; } },
     { id:"amaze", name:"Amaze + Citi Rewards",
+      cap:"S$1,000 / mo", min:"None", cycle:"Statement (17th–16th)",
       // Amaze routes spend to Citi as online SGD: it lowers the FX fee on FCY-online
       // and unlocks FCY-contactless (which Citi can't earn on directly). Pairs only
       // with Citi, and never applies to SGD spend, travel, or Apple Pay.
       earns:function(a){ return a.fcy===true && a.category!=="travel" && (a.channel==="online_card" || a.channel==="instore_contactless"); } },
     { id:"xl", name:"Maybank XL Rewards",
+      cap:"S$1,000 / mo", min:"S$500", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || ["dining","shopping","travel","entertainment"].indexOf(a.category)>=0); } },
-    { id:"lady", name:"UOB Lady's / Solitaire",
+    { id:"lady", name:"UOB Lady's Solitaire",
+      cap:"S$750 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel!=="online_wallet" && (a.category==="travel" || a.category==="dining"); } },
     { id:"pref", name:"UOB Preferred Visa",
+      cap:"S$600 / mo", min:"None", cycle:"Calendar (resets 1st)",
       earns:function(a){ return a.channel==="instore_contactless"; } },
     { id:"vs", name:"UOB Visa Signature",
+      cap:"S$1,200 / mo", min:"S$1,000", cycle:"Statement (13th–12th)",
       earns:function(a){ return a.channel!=="online_wallet" && (a.fcy===true || a.channel==="instore_contactless"); } }
   ];
 
   var ATTRS = [
     { key:"channel", q:"How are you paying?", options:[
+      {val:"instore_contactless",label:"Contactless"},
       {val:"online_card",        label:"Online"},
-      {val:"online_wallet",      label:"Apple Pay"},
-      {val:"instore_contactless",label:"Contactless"}
+      {val:"online_wallet",      label:"Apple Pay"}
     ]},
     { key:"fcy", q:"What currency is it charged in?", options:[
       {val:false, label:"SGD"},
@@ -624,13 +645,29 @@
         '<span class="res-badge-check">'+CHECK+'</span>'+
         '<div>'+
           '<div class="res-title">Use any of these</div>'+
-          '<div class="res-sub">All earn 4 mpd on this spend</div>'+
+          '<div class="res-sub">All earn 4 mpd — tap a card for caps &amp; cycle</div>'+
         '</div>';
       frag.appendChild(top);
       eligible.forEach(function(c){
         var row = document.createElement("div");
         row.className = "res-card";
-        row.innerHTML = '<span class="res-dot">'+CHECK+'</span><span class="res-name">'+c.name+'</span>';
+        row.innerHTML =
+          '<div class="res-card-head">'+
+            '<span class="res-dot">'+CHECK+'</span>'+
+            '<span class="res-name">'+c.name+'</span>'+
+            DOWN+
+          '</div>'+
+          '<div class="res-details" hidden>'+
+            '<div class="det-row"><span class="det-k">Monthly cap</span><span class="det-v">'+c.cap+'</span></div>'+
+            '<div class="det-row"><span class="det-k">Min. spend</span><span class="det-v">'+c.min+'</span></div>'+
+            '<div class="det-row"><span class="det-k">Cycle</span><span class="det-v">'+c.cycle+'</span></div>'+
+          '</div>';
+        var head = row.querySelector(".res-card-head");
+        var det  = row.querySelector(".res-details");
+        head.addEventListener("click", function(){
+          if(det.hasAttribute("hidden")){ det.removeAttribute("hidden"); row.classList.add("open"); }
+          else { det.setAttribute("hidden",""); row.classList.remove("open"); }
+        });
         frag.appendChild(row);
       });
     }
